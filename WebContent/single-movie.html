@@ -1,85 +1,60 @@
-/**
-* This example is following frontend and backend separation.
-*
-* Before this .js is loaded, the html skeleton is created.
-*
-* This .js performs three steps:
-*      1. Get parameter from request URL so it know which id to look for
-*      2. Use jQuery to talk to backend API to get the json data.
-*      3. Populate the data to correct html elements.
-*/
+<!-- This example is following frontend and backend separation.
+
+    This .html performs two steps:
+    1. Create a html template skeleton, with all the elements defined (some left empty) and named with ids.
+    2. Load single-star.js to populate the data into empty elements.
+    -->
+
+<!doctype html>
+<html lang="en">
+<head>
+  <!-- Required meta tags -->
+  <meta charset="utf-8">
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+
+  <title>Single Movie</title>
+</head>
+<body>
+<h1>Single Movie Page</h1>
+
+<!-- H3 body is left empty here, will be populated with the data retrieved with single-star.js -->
+<!-- single-star.js will find this html element by it's id "star_info" -->
+<h3 id="star_info"></h3>
+<table id=movie_table class="table table-striped">
+  <thead>
+  <tr>
+    <th>Movie Title</th>
+    <th>Year</th>
+    <th>Director</th>
+    <th>Genres</th>
+    <th>Stars</th>
+    <th>Rating</th>
+
+    <th>
+  </tr>
+  </thead>
+
+  <!-- Table body is left empty here, will be populated with the data retrieved with single-star.js -->
+  <!-- single-star.js will find this html element by it's id "movie_table_body" -->
+  <tbody id=movie_table_body></tbody>
+</table>
+
+<!-- Load jQuery and Bootstrap JS -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+
+<!-- Load our own JS file -->
+<!-- The path is relative to single-star.html, since these two files are in the same directory -->
+<!-- Note the url does not contain a "/" in the beginning, which means the url is relative to current path
+     otherwise the url is relative to the root path-->
+<script src="single-star.js"></script>
+</body>
 
 
-/**
-* Retrieve parameter from request URL, matching by parameter name
-* @param target String
-* @returns {*}
-*/
-function getParameterByName(target) {
-// Get request URL
-let url = window.location.href;
-// Encode target parameter name to url encoding
-target = target.replace(/[\[\]]/g, "\\$&");
-
-// Ues regular expression to find matched parameter value
-let regex = new RegExp("[?&]" + target + "(=([^&#]*)|&|#|$)"),
-results = regex.exec(url);
-if (!results) return null;
-if (!results[2]) return '';
-
-// Return the decoded parameter value
-return decodeURIComponent(results[2].replace(/\+/g, " "));
-}
-
-/**
-* Handles the data returned by the API, read the jsonObject and populate data into html elements
-* @param resultData jsonObject
-*/
-
-function handleResult(resultData) {
-
-console.log("handleResult: populating star info from resultData");
-
-// populate the star info h3
-// find the empty h3 body by id "star_info"
-let movieInfoElement = jQuery("#movie_info");
-
-// append two html <p> created to the h3 body, which will refresh the page
-  movieInfoElement.append("<p>Movie Title: " + resultData[0]["movie_title"] + "</p>" +
-"<p>Movie Year: " + resultData[0]["movie_year"] + "</p>" +
-"<p>Movie Director: " + resultData[0]["movie_director"] + "</p>" +
-"<p>Movie Rating: " + resultData[0]["movie_rating"] + "</p>");
-
-console.log("handleResult: populating start table from resultData");
-
-// Populate the star table
-// Find the empty table body by id "movie_table_body"
-/*
-let starTableBodyElement = jQuery("#star_table_body");
-
-// Concatenate the html tags with resultData jsonObject to create table rows
-for (let i = 0; i < Math.min(10, resultData.length); i++) {
-let rowHTML = "";
-rowHTML += "<tr>";
-  rowHTML += "<th>" + resultData[i]["movie_title"] + "</th>";
-  rowHTML += "</tr>";
-
-// Append the row created to the table body, which will refresh the page
-movieTableBodyElement.append(rowHTML);
-}*/
-}
-
-/**
-* Once this .js is loaded, following scripts will be executed by the browser\
-*/
-
-// Get id from URL
-let starId = getParameterByName('id');
-
-// Makes the HTTP GET request and registers on success callback function handleResult
-jQuery.ajax({
-dataType: "json",  // Setting return data type
-method: "GET",// Setting request method
-url: "api/single-movie?id=" + movieId, // Setting request url, which is mapped by SingleMovieServlet in Stars.java
-success: (resultData) => handleResult(resultData) // Setting callback function to handle data returned successfully by the SingleStarServlet
-});
+</html>
