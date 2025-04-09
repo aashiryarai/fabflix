@@ -66,10 +66,10 @@ mysql> quit;
 6. To run the example, follow the instructions in canvas.
 
 ### Brief Explanation
-- `StarsServlet.java` is a Java servlet that talks to the database and get the stars. It returns a list of stars in the JSON format. 
+- `SingleMovieServlet.java` is a Java servlet that talks to the database and get the stars. It returns a list of stars in the JSON format. 
 The name of star is generated as a link to Single Star page.
 
-- `index.js` is the main Javascript file that initiates an HTTP GET request to the `StarsServlet`. After the response is returned, `index.js` populates the table using the data it gets.
+- `index.js` is the main Javascript file that initiates an HTTP GET request to the `SingleMovieServlet`. After the response is returned, `index.js` populates the table using the data it gets.
 
 - `index.html` is the main HTML file that imports jQuery, Bootstrap, and `index.js`. It also contains the initial skeleton for the table.
 
@@ -91,6 +91,6 @@ The name of star is generated as a link to Single Star page.
 - `WebContent/META-INF/context.xml` contains a DataSource, with database information stored in it.
 `WEB-INF/web.xml` registers the DataSource to name jdbc/moviedbexample, which could be referred to anywhere in the project.
 
-- In both `SingleStarServlet.java` and `StarsServlet.java`, a private DataSource reference dataSource is created with `@Resource` annotation. It is a reference to the DataSource `jdbc/moviedbexample` we registered in `web.xml`
+- In both `SingleStarServlet.java` and `SingleMovieServlet.java`, a private DataSource reference dataSource is created with `@Resource` annotation. It is a reference to the DataSource `jdbc/moviedbexample` we registered in `web.xml`
 
 - To use DataSource, you can create a new connection to it by `dataSource.getConnection()`, and you can use the connection as previous examples.

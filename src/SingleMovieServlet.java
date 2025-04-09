@@ -14,10 +14,11 @@ import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.util.HashSet;
 
 // Declaring a WebServlet called SingleStarServlet, which maps to url "/api/single-star"
-@WebServlet(name = "SingleStarServlet", urlPatterns = "/api/single-star")
-public class SingleStarServlet extends HttpServlet {
+@WebServlet(name = "SingleMovieServlet", urlPatterns = "/api/single-movie")
+public class SingleMovieServlet extends HttpServlet {
     private static final long serialVersionUID = 2L;
 
     // Create a dataSource which registered in web.xml
@@ -53,8 +54,14 @@ public class SingleStarServlet extends HttpServlet {
             // Get a connection from dataSource
 
             // Construct a query with parameter represented by "?"
-            String query = "SELECT * from stars as s, stars_in_movies as sim, movies as m " +
-                    "where m.id = sim.movieId and sim.starId = s.id and s.id = ?";
+            String query = "SELECT * FROM movies AS m, ratings AS r, " +
+                    "stars_in_movies AS sim, stars AS s, genres_in_movies AS gm, " +
+                    "genres AS g " +
+                    "WHERE m.id = ? AND m.id = r.movieId " +
+                    "AND m.id = sim.movieId " +
+                    "AND sim.starId = s.id " +
+                    "AND m.id = gm.movieId " +
+                    "AND gm.genreId = g.id";
 
             // Declare our statement
             PreparedStatement statement = conn.prepareStatement(query);
@@ -66,38 +73,47 @@ public class SingleStarServlet extends HttpServlet {
             // Perform the query
             ResultSet rs = statement.executeQuery();
 
-            JsonArray jsonArray = new JsonArray();
+            //JsonArray jsonArray = new JsonArray();
+            JsonObject jsonObject = new JsonObject();
+            JsonArray genresArray = new JsonArray();
+            JsonArray starsArray = new JsonArray();
 
+            HashSet<String> genreSet = new HashSet<>();
+            HashSet<String> starSet = new HashSet<>();
+
+            //boolean initialized = false;
             // Iterate through each row of rs
             while (rs.next()) {
+                jsonObject.addProperty("movie_id", rs.getString("id"));
+                jsonObject.addProperty("movie_title", rs.getString("title"));
+                jsonObject.addProperty("movie_year", rs.getString("year"));
+                jsonObject.addProperty("movie_director", rs.getString("director"));
+                jsonObject.addProperty("movie_rating", rs.getString("rating"));
 
-                String starId = rs.getString("starId");
-                String starName = rs.getString("name");
-                String starDob = rs.getString("birthYear");
+                String genre = rs.getString("g.name");
+                if (genreSet.add(genre)) {
+                    genresArray.add(genre);
+                }
 
-                String movieId = rs.getString("movieId");
-                String movieTitle = rs.getString("title");
-                String movieYear = rs.getString("year");
-                String movieDirector = rs.getString("director");
-
-                // Create a JsonObject based on the data we retrieve from rs
-
-                JsonObject jsonObject = new JsonObject();
-                jsonObject.addProperty("star_id", starId);
-                jsonObject.addProperty("star_name", starName);
-                jsonObject.addProperty("star_dob", starDob);
-                jsonObject.addProperty("movie_id", movieId);
-                jsonObject.addProperty("movie_title", movieTitle);
-                jsonObject.addProperty("movie_year", movieYear);
-                jsonObject.addProperty("movie_director", movieDirector);
-
-                jsonArray.add(jsonObject);
+                String starId = rs.getString("s.id");
+                if (starSet.add(starId)) {
+                    JsonObject starObject = new JsonObject();
+                    starObject.addProperty("star_id", starId);
+                    starObject.addProperty("star_name", rs.getString("s.name"));
+                    starsArray.add(starObject);
+                }
             }
+            jsonObject.add("genres", genresArray);
+            jsonObject.add("stars", starsArray);
+
+            JsonArray resultArray = new JsonArray();
+            resultArray.add(jsonObject);
+
             rs.close();
             statement.close();
 
             // Write JSON string to output
-            out.write(jsonArray.toString());
+            //out.write(jsonArray.toString());
             // Set response status to 200 (OK)
             response.setStatus(200);
 
