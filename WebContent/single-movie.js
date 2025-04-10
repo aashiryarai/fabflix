@@ -42,11 +42,11 @@ function handleResult(resultData) {
 
     // populate the star info h3
     // find the empty h3 body by id "star_info"
-    let starInfoElement = jQuery("#star_info");
+    let movieInfoElement = jQuery("#movie_info");
 
     // append two html <p> created to the h3 body, which will refresh the page
-    starInfoElement.append("<p>Star Name: " + resultData[0]["star_name"] + "</p>" +
-        "<p>Date Of Birth: " + resultData[0]["star_dob"] + "</p>");
+    movieInfoElement.append("<p>Movie Name: " + resultData[0]["movie_title"] + "</p>" +
+        "<p>Year: " + resultData[0]["movie_year"] + "</p>");
 
     console.log("handleResult: populating movie table from resultData");
 
