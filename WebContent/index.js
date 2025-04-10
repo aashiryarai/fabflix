@@ -34,10 +34,14 @@ function handleStarResult(resultData) {
         rowHTML += "<th>" + resultData[i]["movie_year"] + "</th>";
         rowHTML += "<th>" + resultData[i]["movie_director"] + "</th>";
         rowHTML += "<th>" + resultData[i]["movie_genres"] + "</th>";
-        rowHTML += "<th>" + resultData[i]["movie_stars"] + "</th>";
+        //rowHTML += "<th>" + resultData[i]["movie_stars"] + "</th>";
+        let starsArray = resultData[i]["movie_stars"];
+        let starsString = starsArray.map(star =>
+            `<a href="single-star.html?id=${star.star_id}">${star.star_name}</a>`
+        ).join(", ");
+        rowHTML += "<th>" + starsString + "</th>";
+
         rowHTML += "<th>" + resultData[i]["movie_rating"] + "</th>";
-
-
         rowHTML += "</tr>";
 
         // Append the row created to the table body, which will refresh the page

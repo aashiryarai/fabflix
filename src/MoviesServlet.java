@@ -12,6 +12,7 @@ import javax.sql.DataSource;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.Statement;
 
@@ -89,49 +90,34 @@ public class MoviesServlet extends HttpServlet {
                 rs_g.close();
                 g_statement.close();
 
-                Statement s_statement = conn.createStatement();
-                String star_query = String.format(
-                        "SELECT s.name AS starName " +
-                                "FROM stars_in_movies sm " +
-                                "JOIN stars s ON sm.starId = s.id " +
-                                "WHERE sm.movieId = '%s' " +
-                                "LIMIT 3", movieId
-                );
-                ResultSet rs_s = s_statement.executeQuery(star_query);
-                String stars = "";
-                while(rs_s.next()){
-                    stars += rs_s.getString("starName");
-                    stars += ", ";
-                }
-                jsonObject.addProperty("movie_stars", stars);
 
-                jsonArray.add(jsonObject);
+                String star_query = "SELECT s.id AS starId, s.name AS starName FROM stars_in_movies sm JOIN stars s ON sm.starId = s.id WHERE sm.movieId = ?";
+                PreparedStatement s_statement = conn.prepareStatement(star_query);
+                s_statement.setString(1, movieId);
+                ResultSet rs_s = s_statement.executeQuery();
+                JsonArray starsArray = new JsonArray();
+
+                //String stars = "";
+                while(rs_s.next()){
+                    JsonObject starObject = new JsonObject();
+                    starObject.addProperty("star_id", rs_s.getString("starId"));
+                    starObject.addProperty("star_name", rs_s.getString("starName"));
+                    starsArray.add(starObject);
+                }
+                jsonObject.add("movie_stars", starsArray);
 
                 rs_s.close();
                 s_statement.close();
 
                 jsonObject.addProperty("movie_rating", rs.getFloat("rating"));
 
+                jsonArray.add(jsonObject);
+
             }
+
             rs.close();
             statement.close();
 
-/*
-            ResultSet rs2 = statement.executeQuery(genre_query);
-
-            String genres = "";
-            JsonObject jsonObject_g = new JsonObject();
-            while (rs2.next()) {
-
-                genres += rs2.getString("genreName") + ", ";
-                //jsonObject.addProperty("genre", rs2.getString("genre"));
-            }
-
-            jsonObject_g.addProperty("genres", rs2.getString("genre"));
-            jsonArray.add(jsonObject_g);
-
-            rs2.close();
-            statement.close(); */
 
             // Log to localhost log
             request.getServletContext().log("getting " + jsonArray.size() + " results");
@@ -140,6 +126,7 @@ public class MoviesServlet extends HttpServlet {
             out.write(jsonArray.toString());
             // Set response status to 200 (OK)
             response.setStatus(200);
+
 
         } catch (Exception e) {
 

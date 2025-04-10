@@ -44,9 +44,14 @@ function handleResult(resultData) {
     // find the empty h3 body by id "star_info"
     let starInfoElement = jQuery("#star_info");
 
+    let yearOfBirth = resultData[0]["year_of_birth"];
+    if (!yearOfBirth || yearOfBirth === "null" || yearOfBirth === null) {
+        yearOfBirth = "N/A";
+    }
+
     // append two html <p> created to the h3 body, which will refresh the page
     starInfoElement.append("<p>Star Name: " + resultData[0]["star_name"] + "</p>" +
-        "<p>Date Of Birth: " + resultData[0]["year_of_birth"] + "</p>");
+        "<p>Date Of Birth: " + yearOfBirth + "</p>");
 
     console.log("handleResult: populating movie table from resultData");
 
@@ -59,7 +64,7 @@ function handleResult(resultData) {
         let rowHTML = "";
         rowHTML += "<tr>";
         rowHTML += "<th>" + resultData[i]["star_name"] + "</th>";
-        rowHTML += "<th>" + resultData[i]["year_of_birth"] + "</th>";
+        rowHTML += "<th>" + yearOfBirth + "</th>";
 
         let moviesArray = resultData[i]["movies"];
         let moviesString = moviesArray.map(movie =>

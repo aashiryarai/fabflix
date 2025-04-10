@@ -94,7 +94,7 @@ public class SingleMovieServlet extends HttpServlet {
             ResultSet rs_s = s_statement.executeQuery();
             JsonArray starsArray = new JsonArray();
 
-            String stars = "";
+            //String stars = "";
             while(rs_s.next()){
                 JsonObject starObject = new JsonObject();
                 starObject.addProperty("star_id", rs_s.getString("starId"));
@@ -105,7 +105,6 @@ public class SingleMovieServlet extends HttpServlet {
 
             rs_s.close();
             s_statement.close();
-
 
 
             jsonObject.addProperty("movie_rating", rs.getFloat("rating"));
