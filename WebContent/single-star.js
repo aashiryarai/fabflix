@@ -58,9 +58,17 @@ function handleResult(resultData) {
     for (let i = 0; i < Math.min(10, resultData.length); i++) {
         let rowHTML = "";
         rowHTML += "<tr>";
-        rowHTML += "<th>" + resultData[i]["movie_title"] + "</th>";
-        rowHTML += "<th>" + resultData[i]["movie_year"] + "</th>";
-        rowHTML += "<th>" + resultData[i]["movie_director"] + "</th>";
+        rowHTML += "<th>" + resultData[i]["star_name"] + "</th>";
+        rowHTML += "<th>" + resultData[i]["year_of_birth"] + "</th>";
+
+       /* let moviesArray = resultData[i]["movies"];
+        let moviesString = moviesArray.map(movie =>
+            `<a href="single-movie.html?id=${movie.movie_id}">${movie.movie_name}</a>`
+        ).join(", ");
+
+        rowHTML += "<th>" + moviesString + "</th>";
+
+        */
         rowHTML += "</tr>";
 
         // Append the row created to the table body, which will refresh the page

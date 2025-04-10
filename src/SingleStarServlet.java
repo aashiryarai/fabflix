@@ -52,49 +52,47 @@ public class SingleStarServlet extends HttpServlet {
         try (Connection conn = dataSource.getConnection()) {
             // Get a connection from dataSource
 
-            // Construct a query with parameter represented by "?"
-            String query = "SELECT * from stars as s, stars_in_movies as sim, movies as m " +
-                    "where m.id = sim.movieId and sim.starId = s.id and s.id = ?";
-
-            // Declare our statement
+            //whatever is already available in stars table
+            String query = "SELECT * FROM stars WHERE id = ?";
             PreparedStatement statement = conn.prepareStatement(query);
-
-            // Set the parameter represented by "?" in the query to the id we get from url,
-            // num 1 indicates the first "?" in the query
             statement.setString(1, id);
-
-            // Perform the query
             ResultSet rs = statement.executeQuery();
 
             JsonArray jsonArray = new JsonArray();
+            JsonObject jsonObject = new JsonObject();
 
-            // Iterate through each row of rs
-            while (rs.next()) {
 
-                String starId = rs.getString("starId");
-                String starName = rs.getString("name");
-                String starDob = rs.getString("birthYear");
-
-                String movieId = rs.getString("movieId");
-                String movieTitle = rs.getString("title");
-                String movieYear = rs.getString("year");
-                String movieDirector = rs.getString("director");
-
-                // Create a JsonObject based on the data we retrieve from rs
-
-                JsonObject jsonObject = new JsonObject();
-                jsonObject.addProperty("star_id", starId);
-                jsonObject.addProperty("star_name", starName);
-                jsonObject.addProperty("star_dob", starDob);
-                jsonObject.addProperty("movie_id", movieId);
-                jsonObject.addProperty("movie_title", movieTitle);
-                jsonObject.addProperty("movie_year", movieYear);
-                jsonObject.addProperty("movie_director", movieDirector);
-
-                jsonArray.add(jsonObject);
+            if(rs.next()){
+                jsonObject.addProperty("star_name", rs.getString("name"));
+                jsonObject.addProperty("year_of_birth", rs.getString("birthYear"));
             }
+
             rs.close();
             statement.close();
+
+            //movie query separate
+           /* String movie_query = "SELECT m.id AS movieId, m.title AS movieName FROM stars_in_movies sm JOIN movies m ON sm.movieId = m.id WHERE sm.starId = ?";
+            PreparedStatement m_statement = conn.prepareStatement(movie_query);
+            m_statement.setString(1, id);
+            ResultSet rs_m = m_statement.executeQuery();
+
+            JsonArray moviesArray = new JsonArray();
+
+            while (rs_m.next()) {
+
+                JsonObject movieObject = new JsonObject();
+                movieObject.addProperty("movie_id", rs_m.getString("movieId"));
+                movieObject.addProperty("movie_name", rs_m.getString("movieName"));
+                moviesArray.add(movieObject);
+            }
+            jsonObject.add("movies", moviesArray);
+
+            rs_m.close();
+            m_statement.close();
+
+            */
+
+            jsonArray.add(jsonObject);
 
             // Write JSON string to output
             out.write(jsonArray.toString());

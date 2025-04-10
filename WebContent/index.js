@@ -27,7 +27,7 @@ function handleStarResult(resultData) {
         let rowHTML = "";
         rowHTML += "<tr>";
         rowHTML += "<th>" +
-            '<a href="single-star.html?id=' + resultData[i]['movie_id'] + '">' +
+            '<a href="single-movie.html?id=' + resultData[i]['movie_id'] + '">' +
             resultData[i]["movie_title"] +
             '</a>' +
             "</th>";
@@ -54,6 +54,6 @@ function handleStarResult(resultData) {
 jQuery.ajax({
     dataType: "json", // Setting return data type
     method: "GET", // Setting request method
-    url: "api/stars", // Setting request url, which is mapped by StarsServlet in Stars.java
+    url: "api/movies", // Setting request url, which is mapped by StarsServlet in Stars.java
     success: (resultData) => handleStarResult(resultData) // Setting callback function to handle data returned successfully by the StarsServlet
 });
