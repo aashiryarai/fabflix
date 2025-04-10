@@ -25,7 +25,7 @@ public class SingleStarServlet extends HttpServlet {
 
     public void init(ServletConfig config) {
         try {
-            dataSource = (DataSource) new InitialContext().lookup("java:comp/env/jdbc/moviedbexample");
+            dataSource = (DataSource) new InitialContext().lookup("java:comp/env/jdbc/moviedb");
         } catch (NamingException e) {
             e.printStackTrace();
         }
@@ -71,7 +71,7 @@ public class SingleStarServlet extends HttpServlet {
             statement.close();
 
             //movie query separate
-           /* String movie_query = "SELECT m.id AS movieId, m.title AS movieName FROM stars_in_movies sm JOIN movies m ON sm.movieId = m.id WHERE sm.starId = ?";
+            String movie_query = "SELECT m.id AS movieId, m.title AS movieName FROM stars_in_movies sm JOIN movies m ON sm.movieId = m.id WHERE sm.starId = ?";
             PreparedStatement m_statement = conn.prepareStatement(movie_query);
             m_statement.setString(1, id);
             ResultSet rs_m = m_statement.executeQuery();
@@ -90,9 +90,9 @@ public class SingleStarServlet extends HttpServlet {
             rs_m.close();
             m_statement.close();
 
-            */
-
             jsonArray.add(jsonObject);
+            /*System.out.println("Reached the servlet!");
+            System.out.println(jsonArray.toString());*/
 
             // Write JSON string to output
             out.write(jsonArray.toString());
