@@ -8,7 +8,22 @@
 <!doctype html>
 <html lang="en">
 <head>
-<head>
+    <style >
+        body {
+            background-color: lightblue;
+            font-family: Verdana;
+        }
+        h1 {
+            color: blue;
+            text-align: center;
+        }
+        p {
+            font-family: verdana;
+        }
+        #movie_table th, #movie_table td {
+            font-weight: normal;
+        }
+    </style>
     <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport"
@@ -20,20 +35,23 @@
 
     <title>Single Star</title>
 </head>
-<body>
+<body style="background-color:lightsteelblue;">
+<div style="width:90%; margin: 0 auto; font-family: verdana;">
+
 <a href="index.html">← Back to Movie List</a>
 <h1>Single Star Page</h1>
 
 <!-- H3 body is left empty here, will be populated with the data retrieved with single-star.js -->
 <!-- single-star.js will find this html element by it's id "star_info" -->
 <h3 id="star_info"></h3>
-<table id=movie_table class="table table-striped">
+    <div style="display: flex; justify-content: center; overflow-x: auto;">
+<table id=movie_table class="table table-striped" style="text-align: center; border: 1px solid white;">
     <thead>
     <tr>
-        <th>Name</th>
-        <th>Year of Birth</th>
-        <th>Movies</th>
-        <th>
+        <th style="width:40%;font-weight: bold;  padding-top:20px;  padding-bottom:20px;">Name</th>
+        <th style="width:20%;font-weight: bold;  padding-top:20px;  padding-bottom:20px;">Year of Birth</th>
+        <th style="width:40%;font-weight: bold;  padding-top:20px;  padding-bottom:20px;">Movies</th>
+        <th style="width:25%;font-weight: bold;  padding-top:20px;  padding-bottom:20px;">
     </tr>
     </thead>
 
@@ -41,6 +59,7 @@
     <!-- single-star.js will find this html element by it's id "movie_table_body" -->
     <tbody id=movie_table_body></tbody>
 </table>
+    </div>
 
 <!-- Load jQuery and Bootstrap JS -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
@@ -52,6 +71,7 @@
 <!-- Note the url does not contain a "/" in the beginning, which means the url is relative to current path
      otherwise the url is relative to the root path-->
 <script src="single-star.js"></script>
+</div>
 </body>
 
 

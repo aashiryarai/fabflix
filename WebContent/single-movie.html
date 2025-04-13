@@ -8,6 +8,22 @@
 <!doctype html>
 <html lang="en">
 <head>
+  <style>
+    body {
+      background-color: lightblue;
+      font-family: Verdana;
+    }
+    h1 {
+      color: blue;
+      text-align: center;
+    }
+    p {
+      font-family: verdana;
+    }
+    #movie_table th, #movie_table td {
+      font-weight: normal;
+    }
+  </style>
   <!-- Required meta tags -->
   <meta charset="utf-8">
   <meta name="viewport"
@@ -19,22 +35,25 @@
 
   <title>Single Movie</title>
 </head>
-<body>
+<body style="background-color:lightsteelblue;">
+<div style="width:90%; margin: 0 auto; font-family: verdana;">
+
 <a href="index.html">← Back to Movie List</a>
 <h1>Single Movie Page</h1>
 
 <!-- H3 body is left empty here, will be populated with the data retrieved with single-star.js -->
 <!-- single-star.js will find this html element by it's id "star_info" -->
 <h3 id="movie_info"></h3>
-<table id=movie_table class="table table-striped">
+  <div style="display: flex; justify-content: center; overflow-x: auto;">
+<table id=movie_table class="table table-striped" style="text-align: center; width: auto;border: 1px solid white;">
   <thead>
   <tr>
-    <th>Movie Title</th>
-    <th>Year</th>
-    <th>Director</th>
-    <th>Genres</th>
-    <th>Stars</th>
-    <th>Rating</th>
+    <th style="width:25%;font-weight: bold;  padding-top:20px;  padding-bottom:20px;">Movie Title</th>
+    <th style="width:5%;font-weight: bold;  padding-top:20px;  padding-bottom:20px;">Year</th>
+    <th style="width:20%;font-weight: bold;  padding-top:20px;  padding-bottom:20px;">Director</th>
+    <th style="width:15%;font-weight: bold;  padding-top:20px;  padding-bottom:20px;">Genres</th>
+    <th style="width:25%;font-weight: bold;  padding-top:20px;  padding-bottom:20px;">Stars</th>
+    <th style="width:5%;font-weight: bold;  padding-top:20px;  padding-bottom:20px;">Rating</th>
 
     <th>
   </tr>
@@ -44,6 +63,7 @@
   <!-- single-star.js will find this html element by it's id "movie_table_body" -->
   <tbody id=movie_table_body></tbody>
 </table>
+  </div>
 
 <!-- Load jQuery and Bootstrap JS -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
@@ -54,7 +74,8 @@
 <!-- The path is relative to single-star.html, since these two files are in the same directory -->
 <!-- Note the url does not contain a "/" in the beginning, which means the url is relative to current path
      otherwise the url is relative to the root path-->
-<script src="single-movie.js"></script>
+  <script src="single-movie.js"></script>
+</div>
 </body>
 
 
