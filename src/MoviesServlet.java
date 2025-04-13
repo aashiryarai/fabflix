@@ -91,7 +91,7 @@ public class MoviesServlet extends HttpServlet {
                 g_statement.close();
 
 
-                String star_query = "SELECT s.id AS starId, s.name AS starName FROM stars_in_movies sm JOIN stars s ON sm.starId = s.id WHERE sm.movieId = ?";
+                String star_query = "SELECT s.id AS starId, s.name AS starName FROM stars_in_movies sm JOIN stars s ON sm.starId = s.id WHERE sm.movieId = ? LIMIT 3;";
                 PreparedStatement s_statement = conn.prepareStatement(star_query);
                 s_statement.setString(1, movieId);
                 ResultSet rs_s = s_statement.executeQuery();
