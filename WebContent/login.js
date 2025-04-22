@@ -48,4 +48,3 @@ function submitLoginForm(formSubmitEvent) {
 
 // Bind the submit action of the form to a handler function
 login_form.submit(submitLoginForm);
-
