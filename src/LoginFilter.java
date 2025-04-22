@@ -5,12 +5,14 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.ArrayList;
 
+
 /**
  * Servlet Filter implementation class LoginFilter
  */
 @WebFilter(filterName = "LoginFilter", urlPatterns = "/*")
 public class LoginFilter implements Filter {
     private final ArrayList<String> allowedURIs = new ArrayList<>();
+
 
     /**
      * @see Filter#doFilter(ServletRequest, ServletResponse, FilterChain)
@@ -19,6 +21,7 @@ public class LoginFilter implements Filter {
             throws IOException, ServletException {
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         HttpServletResponse httpResponse = (HttpServletResponse) response;
+
 
         System.out.println("LoginFilter: " + httpRequest.getRequestURI());
 
@@ -29,6 +32,7 @@ public class LoginFilter implements Filter {
             return;
         }
 
+
         // Redirect to login page if the "user" attribute doesn't exist in session
         if (httpRequest.getSession().getAttribute("user") == null) {
             httpResponse.sendRedirect(httpRequest.getContextPath() + "/login.html");
@@ -36,6 +40,7 @@ public class LoginFilter implements Filter {
             chain.doFilter(request, response);
         }
     }
+
 
     private boolean isUrlAllowedWithoutLogin(String requestURI) {
         /*
@@ -57,4 +62,5 @@ public class LoginFilter implements Filter {
         // ignored.
     }
 
-}
+
+  }

@@ -64,6 +64,7 @@ function handleCartInfo(cartEvent) {
     // clear input form
     cart[0].reset();
 }
+
 $.ajax({
     url: "api/index",
     method: "GET",
@@ -76,10 +77,13 @@ $.ajax({
         window.location.replace("login.html");
     }
 });
+
 $.ajax("api/index", {
     method: "GET",
     success: handleSessionData
 });
 
 // Bind the submit action of the form to a event handler function
+
 cart.submit(handleCartInfo);
+
