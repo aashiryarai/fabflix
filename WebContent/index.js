@@ -1,67 +1,65 @@
-/**
- * This example is following frontend and backend separation.
- *
- * Before this .js is loaded, the html skeleton is created.
- *
- * This .js performs two steps:
- *      1. Use jQuery to talk to backend API to get the json data.
- *      2. Populate the data to correct html elements.
- */
-
-
-/**
- * Handles the data returned by the API, read the jsonObject and populate data into html elements
- * @param resultData jsonObject
- */
-function handleStarResult(resultData) {
-    console.log("handleStarResult: populating star table from resultData");
-
-    // Populate the star table
-    // Find the empty table body by id "star_table_body"
+function handleMovieResult(resultData) {
     let starTableBodyElement = jQuery("#star_table_body");
+    starTableBodyElement.empty(); // Clear previous results
 
-    // Iterate through resultData, no more than 10 entries
-    for (let i = 0; i < Math.min(20, resultData.length); i++) {
+    //console.log("Result data received:", resultData);
 
-        // Concatenate the html tags with resultData jsonObject
-        let rowHTML = "";
-        rowHTML += "<tr>";
-        rowHTML += "<th>" +
-            '<a href="single-movie.html?id=' + resultData[i]['movie_id'] + '">' +
-            resultData[i]["movie_title"] +
-            '</a>' +
-            "</th>";
-        rowHTML += "<th>" + resultData[i]["movie_year"] + "</th>";
-        rowHTML += "<th>" + resultData[i]["movie_director"] + "</th>";
-        rowHTML += "<th>" + resultData[i]["movie_genres"] + "</th>";
-        //rowHTML += "<th>" + resultData[i]["movie_stars"] + "</th>";
-        let starsArray = resultData[i]["movie_stars"];
-        let starsString = starsArray.map(star =>
-            `<a href="single-star.html?id=${star.star_id}">${star.star_name}</a>`
-        ).join(", ");
-        rowHTML += "<th>" + starsString + "</th>";
+    for (let i = 0; i < resultData.length; i++) {
+        let rowHTML = "<tr>";
+        rowHTML += `<th><a href="single-movie.html?id=${resultData[i]["movie_id"]}">${resultData[i]["movie_title"]}</a></th>`;
+        rowHTML += `<th>${resultData[i]["movie_year"]}</th>`;
+        rowHTML += `<th>${resultData[i]["movie_director"]}</th>`;
 
-        rowHTML += "<th>" + resultData[i]["movie_rating"] + "</th>";
+        // Render genres as hyperlinks
+        let genres = resultData[i]["movie_genres"].split(', ').map(g =>
+            `<a href="browse-genre.html?genre=${encodeURIComponent(g)}">${g}</a>`).join(", ");
+        rowHTML += `<th>${genres}</th>`;
+
+        // Render stars as hyperlinks
+        let stars = resultData[i]["movie_stars"].split(', ').map(s =>
+            `<a href="single-star.html?name=${encodeURIComponent(s)}">${s}</a>`).join(", ");
+        rowHTML += `<th>${stars}</th>`;
+
+        rowHTML += `<th>${resultData[i]["movie_rating"]}</th>`;
         rowHTML += "</tr>";
 
-        // Append the row created to the table body, which will refresh the page
         starTableBodyElement.append(rowHTML);
     }
 }
 
+function performSearch(e) {
+    e.preventDefault();
+    const params = {
+        title: $("#title").val(),
+        year: $("#year").val(),
+        director: $("#director").val(),
+        star: $("#star").val()
+    };
 
-/**
- * Once this .js is loaded, following scripts will be executed by the browser
- */
+    // Skip empty search
+    if (!params.title && !params.year && !params.director && !params.star) {
+        alert("Please provide at least one search field.");
+        return;
+    }
 
-// Makes the HTTP GET request and registers on success callback function handleStarResult
-// 1) Fetch session + username
+    $.ajax({
+        url: "api/movies",
+        method: "GET",
+        data: params,
+        dataType: "json",
+        success: handleMovieResult,
+        error: function(xhr) {
+            console.log("Search failed:", xhr.responseText);
+        }
+    });
+}
+
+// Initial movie load (top 20)
 $.ajax({
     url: "api/index",
     method: "GET",
-    dataType: "json",      // ← tell jQuery to JSON‑parse the response
+    dataType: "json",
     success: function(data) {
-        console.log("parsed session data:", data);
         $("#user-info").text("Signed in as: " + data.username);
     },
     error: function() {
@@ -69,15 +67,13 @@ $.ajax({
     }
 });
 
-// 2) Logout click handler
-$("#logout-button").click(function() {
-    // hitting /logout invalidates and sends you to login.html
-    window.location.replace("logout");
-});
+$("#logout-button").click(() => window.location.replace("logout"));
+$("#search-form").submit(performSearch);
 
-jQuery.ajax({
-    dataType: "json", // Setting return data type
-    method: "GET", // Setting request method
-    url: "api/movies", // Setting request url, which is mapped by StarsServlet in Stars.java
-    success: (resultData) => handleStarResult(resultData) // Setting callback function to handle data returned successfully by the StarsServlet
+// Initial load top 20 movies (no filter)
+$.ajax({
+    dataType: "json",
+    method: "GET",
+    url: "api/movies",
+    success: handleMovieResult
 });
