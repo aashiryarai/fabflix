@@ -64,7 +64,18 @@ function handleCartInfo(cartEvent) {
     // clear input form
     cart[0].reset();
 }
-
+$.ajax({
+    url: "api/index",
+    method: "GET",
+    dataType: "json",      // ← tell jQuery to JSON‑parse the response
+    success: function(data) {
+        console.log("parsed session data:", data);
+        $("#user-info").text("Signed in as: " + data.username);
+    },
+    error: function() {
+        window.location.replace("login.html");
+    }
+});
 $.ajax("api/index", {
     method: "GET",
     success: handleSessionData

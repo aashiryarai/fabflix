@@ -35,6 +35,18 @@
 
   <title>Single Movie</title>
 </head>
+<script>
+  $.ajax({
+    url: "api/index",
+    method: "GET",
+    success: function(data) {
+      console.log("User logged in:", data);
+    },
+    error: function() {
+      window.location.replace("login.html");
+    }
+  });
+</script>
 <body style="background-color:lightsteelblue;">
 <div style="display:flex; justify-content:space-between; align-items:center; padding:8px;">
   <span id="user-info">Loading user…</span>
@@ -42,42 +54,42 @@
 </div>
 <div style="width:90%; margin: 0 auto; font-family: verdana;">
 
-<a href="index.html">← Back to Movie List</a>
-<h1>Single Movie Page</h1>
+  <a href="index.html">← Back to Movie List</a>
+  <h1>Single Movie Page</h1>
 
-<!-- H3 body is left empty here, will be populated with the data retrieved with single-star.js -->
-<!-- single-star.js will find this html element by it's id "star_info" -->
-<h3 id="movie_info"></h3>
+  <!-- H3 body is left empty here, will be populated with the data retrieved with single-star.js -->
+  <!-- single-star.js will find this html element by it's id "star_info" -->
+  <h3 id="movie_info"></h3>
   <div style="display: flex; justify-content: center; overflow-x: auto;">
-<table id=movie_table class="table table-striped" style="text-align: center; width: auto;border: 1px solid white;">
-  <thead>
-  <tr>
-    <th style="width:25%;font-weight: bold;  padding-top:20px;  padding-bottom:20px;">Movie Title</th>
-    <th style="width:5%;font-weight: bold;  padding-top:20px;  padding-bottom:20px;">Year</th>
-    <th style="width:20%;font-weight: bold;  padding-top:20px;  padding-bottom:20px;">Director</th>
-    <th style="width:15%;font-weight: bold;  padding-top:20px;  padding-bottom:20px;">Genres</th>
-    <th style="width:25%;font-weight: bold;  padding-top:20px;  padding-bottom:20px;">Stars</th>
-    <th style="width:5%;font-weight: bold;  padding-top:20px;  padding-bottom:20px;">Rating</th>
+    <table id=movie_table class="table table-striped" style="text-align: center; width: auto;border: 1px solid white;">
+      <thead>
+      <tr>
+        <th style="width:25%;font-weight: bold;  padding-top:20px;  padding-bottom:20px;">Movie Title</th>
+        <th style="width:5%;font-weight: bold;  padding-top:20px;  padding-bottom:20px;">Year</th>
+        <th style="width:20%;font-weight: bold;  padding-top:20px;  padding-bottom:20px;">Director</th>
+        <th style="width:15%;font-weight: bold;  padding-top:20px;  padding-bottom:20px;">Genres</th>
+        <th style="width:25%;font-weight: bold;  padding-top:20px;  padding-bottom:20px;">Stars</th>
+        <th style="width:5%;font-weight: bold;  padding-top:20px;  padding-bottom:20px;">Rating</th>
 
-    <th>
-  </tr>
-  </thead>
+        <th>
+      </tr>
+      </thead>
 
-  <!-- Table body is left empty here, will be populated with the data retrieved with single-star.js -->
-  <!-- single-star.js will find this html element by it's id "movie_table_body" -->
-  <tbody id=movie_table_body></tbody>
-</table>
+      <!-- Table body is left empty here, will be populated with the data retrieved with single-star.js -->
+      <!-- single-star.js will find this html element by it's id "movie_table_body" -->
+      <tbody id=movie_table_body></tbody>
+    </table>
   </div>
 
-<!-- Load jQuery and Bootstrap JS -->
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+  <!-- Load jQuery and Bootstrap JS -->
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
 
-<!-- Load our own JS file -->
-<!-- The path is relative to single-star.html, since these two files are in the same directory -->
-<!-- Note the url does not contain a "/" in the beginning, which means the url is relative to current path
-     otherwise the url is relative to the root path-->
+  <!-- Load our own JS file -->
+  <!-- The path is relative to single-star.html, since these two files are in the same directory -->
+  <!-- Note the url does not contain a "/" in the beginning, which means the url is relative to current path
+       otherwise the url is relative to the root path-->
   <script src="single-movie.js"></script>
 </div>
 </body>
