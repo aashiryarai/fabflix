@@ -55,6 +55,25 @@ function handleStarResult(resultData) {
  */
 
 // Makes the HTTP GET request and registers on success callback function handleStarResult
+// 1) Fetch session + username
+$.ajax({
+    url: "api/index",
+    method: "GET",
+    success: function(data) {
+        $("#user-info").text("Signed in as: " + data.username);
+    },
+    error: function() {
+        // no session → bounce to login
+        window.location.replace("login.html");
+    }
+});
+
+// 2) Logout click handler
+$("#logout-button").click(function() {
+    // hitting /logout invalidates and sends you to login.html
+    window.location.replace("logout");
+});
+
 jQuery.ajax({
     dataType: "json", // Setting return data type
     method: "GET", // Setting request method
