@@ -35,6 +35,18 @@
 
   <title>Single Movie</title>
 </head>
+<script>
+  $.ajax({
+    url: "api/index",
+    method: "GET",
+    success: function(data) {
+      console.log("User logged in:", data);
+    },
+    error: function() {
+      window.location.replace("login.html");
+    }
+  });
+</script>
 <body style="background-color:lightsteelblue;">
 <div style="display:flex; justify-content:space-between; align-items:center; padding:8px;">
   <span id="user-info">Loading user…</span>
