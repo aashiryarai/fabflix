@@ -59,11 +59,12 @@ function handleStarResult(resultData) {
 $.ajax({
     url: "api/index",
     method: "GET",
+    dataType: "json",      // ← tell jQuery to JSON‑parse the response
     success: function(data) {
+        console.log("parsed session data:", data);
         $("#user-info").text("Signed in as: " + data.username);
     },
     error: function() {
-        // no session → bounce to login
         window.location.replace("login.html");
     }
 });

@@ -85,7 +85,23 @@ function handleResult(resultData) {
 
 // Get id from URL
 let starId = getParameterByName('id');
-
+$.ajax({
+    url: "api/index",
+    method: "GET",
+    dataType: "json",      // ← tell jQuery to JSON‑parse the response
+    success: function(data) {
+        console.log("parsed session data:", data);
+        $("#user-info").text("Signed in as: " + data.username);
+    },
+    error: function() {
+        window.location.replace("login.html");
+    }
+});
+// 2) Logout click handler
+$("#logout-button").click(function() {
+    // hitting /logout invalidates and sends you to login.html
+    window.location.replace("logout");
+});
 // Makes the HTTP GET request and registers on success callback function handleResult
 jQuery.ajax({
     dataType: "json",  // Setting return data type
