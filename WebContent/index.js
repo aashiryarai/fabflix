@@ -15,7 +15,6 @@ function handleMovieResult(resultData) {
             `<a href="browse-genre.html?genre=${encodeURIComponent(g)}">${g}</a>`).join(", ");
         rowHTML += `<th>${genres}</th>`;
 
-        // Render stars as hyperlinks
         let stars = resultData[i]["movie_stars"].split(', ').map(s =>
             `<a href="single-star.html?name=${encodeURIComponent(s)}">${s}</a>`).join(", ");
         rowHTML += `<th>${stars}</th>`;
@@ -36,7 +35,6 @@ function performSearch(e) {
         star: $("#star").val()
     };
 
-    // Skip empty search
     if (!params.title && !params.year && !params.director && !params.star) {
         alert("Please provide at least one search field.");
         return;
@@ -54,7 +52,6 @@ function performSearch(e) {
     });
 }
 
-// Initial movie load (top 20)
 $.ajax({
     url: "api/index",
     method: "GET",
@@ -70,7 +67,6 @@ $.ajax({
 $("#logout-button").click(() => window.location.replace("logout"));
 $("#search-form").submit(performSearch);
 
-// Initial load top 20 movies (no filter)
 $.ajax({
     dataType: "json",
     method: "GET",
