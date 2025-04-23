@@ -73,3 +73,17 @@ $.ajax({
     url: "api/movies",
     success: handleMovieResult
 });
+
+fetch('api/genres')
+    .then(res => res.json())
+    .then(genres => {
+        const container = document.getElementById("genre-links");
+        genres.forEach(g => {
+            const link = document.createElement("a");
+            link.href = `browse-genre.html?genre=${encodeURIComponent(g)}`;
+            link.className = "badge badge-info mx-1 my-1";
+            link.innerText = g;
+            container.appendChild(link);
+        });
+    })
+    .catch(err => console.error("Genre fetch failed:", err));

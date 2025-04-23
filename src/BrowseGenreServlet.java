@@ -14,8 +14,8 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
-@WebServlet(name = "GenresServlet", urlPatterns = "/api/genres")
-public class GenresServlet extends HttpServlet {
+@WebServlet(name = "BrowseGenreServlet", urlPatterns = "/api/browse-genre")
+public class BrowseGenreServlet extends HttpServlet {
     private DataSource ds;
 
     public void init(ServletConfig config) {
@@ -28,20 +28,34 @@ public class GenresServlet extends HttpServlet {
     }
 
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
+        String genre = req.getParameter("genre");
+        //System.out.println("genre: " + genre);
         resp.setContentType("application/json");
 
-        String query = "SELECT name FROM genres ORDER BY name";
+        String query = "SELECT m.id, m.title, m.year, m.director " +
+            "FROM movies m " +
+            "JOIN genres_in_movies gim ON m.id = gim.movieId " +
+            "JOIN genres g ON g.id = gim.genreId " +
+            "WHERE g.name = ? " +
+            "ORDER BY m.title";
 
         try (Connection conn = ds.getConnection();
-             PreparedStatement ps = conn.prepareStatement(query);
-             ResultSet rs = ps.executeQuery()) {
+             PreparedStatement ps = conn.prepareStatement(query)) {
 
-            JsonArray genres = new JsonArray();
+            ps.setString(1, genre);
+            ResultSet rs = ps.executeQuery();
+
+            JsonArray result = new JsonArray();
             while (rs.next()) {
-                genres.add(rs.getString("name"));
+                JsonObject movie = new JsonObject();
+                movie.addProperty("id", rs.getString("id"));
+                movie.addProperty("title", rs.getString("title"));
+                movie.addProperty("year", rs.getInt("year"));
+                movie.addProperty("director", rs.getString("director"));
+                result.add(movie);
             }
 
-            resp.getWriter().write(genres.toString());
+            resp.getWriter().write(result.toString());
 
         } catch (Exception e) {
             resp.setStatus(500);

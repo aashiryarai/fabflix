@@ -40,6 +40,8 @@
     <span id="user-info">Loading user…</span>
     <button id="logout-button">Logout</button>
 </div>
+<div id="genre-links" class="mb-3"></div>
+<div id="title-links" class="mb-3 d-flex flex-wrap justify-content-center"></div>
 <div style="width:90%; margin: 0 auto; font-family: verdana;">
     <h1 style="font-size: 50px;  padding-top:20px;  padding-bottom:20px;">Movies</h1>
 
@@ -70,6 +72,35 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            fetch('api/genres')
+                .then(res => res.json())
+                .then(genres => {
+                    const container = document.getElementById("genre-links");
+                    console.log("Genres:", genres); // ← sanity check
+                    genres.forEach(g => {
+                        const link = document.createElement("a");
+                        link.href = `browse-genre.html?genre=${encodeURIComponent(g)}`;
+                        link.className = "badge badge-info mx-1 my-1";
+                        link.innerText = g;
+                        container.appendChild(link);
+                    });
+                })
+                .catch(err => console.error("Genre fetch failed:", err));
+        });
+
+        const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ*".split('');
+        const titleContainer = document.getElementById("title-links");
+
+        alphabet.forEach(letter => {
+            const link = document.createElement("a");
+            link.href = `browse-title.html?startsWith=${encodeURIComponent(letter)}`;
+            link.className = "badge badge-primary mx-1 my-1";
+            link.innerText = letter;
+            titleContainer.appendChild(link);
+        });
+    </script>
     <script src="index.js"></script>
 </div>
 </body>
