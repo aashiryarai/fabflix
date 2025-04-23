@@ -22,7 +22,6 @@ function handleLoginResult(resultDataString) {
         $("#login_error_message").text(resultDataJson["message"]);
     }
 }
-
 /**
  * Submit the form content with POST method
  * @param formSubmitEvent
