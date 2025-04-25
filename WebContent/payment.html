@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Payment</title>
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
+</head>
+<body style="padding: 30px;">
+<h2>Payment Page</h2>
+<div id="cart-summary"></div>
+
+<form id="payment-form">
+  <div class="form-group">
+    <label>First Name on Card</label>
+    <input type="text" class="form-control" name="firstName" required>
+  </div>
+  <div class="form-group">
+    <label>Last Name on Card</label>
+    <input type="text" class="form-control" name="lastName" required>
+  </div>
+  <div class="form-group">
+    <label>Credit Card Number</label>
+    <input type="text" class="form-control" name="cardNumber" required>
+  </div>
+  <div class="form-group">
+    <label>Expiration Date</label>
+    <input type="date" class="form-control" name="expDate" required>
+  </div>
+
+  <button type="submit" class="btn btn-primary">Place Order</button>
+</form>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="payment.js"></script>
+</body>
+</html>

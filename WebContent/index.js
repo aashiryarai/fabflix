@@ -19,12 +19,34 @@ function handleMovieResult(resultData) {
             `<a href="single-star.html?name=${encodeURIComponent(s)}">${s}</a>`).join(", ");
         rowHTML += `<th>${stars}</th>`;
 
-        rowHTML += `<th>${resultData[i]["movie_rating"]}</th>`;
+        rowHTML += `<th>${resultData[i]["movie_rating"]}<button class="btn btn-sm btn-success ml-2 add-to-cart" 
+                        data-id="${resultData[i]["movie_id"]}" 
+                        data-title="${resultData[i]["movie_title"]}">
+                    Add to Cart
+                </button>
+                </th>`;
         rowHTML += "</tr>";
 
         starTableBodyElement.append(rowHTML);
     }
 }
+$(document).on('click', '.add-to-cart', function () {
+    const movieId = $(this).data("id");
+    const title = $(this).data("title");
+
+    $.ajax({
+        url: "api/cart",
+        method: "POST",
+        data: {
+            action: "add",
+            movieId: movieId,
+            title: title
+        },
+        success: () => alert(`${title} added to cart!`),
+        error: () => alert("Failed to add to cart.")
+    });
+});
+
 
 function performSearch(e) {
     e.preventDefault();
@@ -65,6 +87,8 @@ $.ajax({
 });
 
 $("#logout-button").click(() => window.location.replace("logout"));
+$("#checkout-button").click(() => window.location.href = "shopping-cart.html");
+
 $("#search-form").submit(performSearch);
 
 $.ajax({
