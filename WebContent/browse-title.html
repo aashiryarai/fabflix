@@ -24,7 +24,7 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
           integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
 
-    <title>Browse Movies by Title</title>
+    <title>Movies By Title</title>
 </head>
 
 <body style="background-color:lightsteelblue;">
@@ -37,9 +37,8 @@
 
 <div style="width:90%; margin: 0 auto; font-family: verdana;">
     <a href="index.html" class="btn btn-link">← Back to Movie List</a>
-    <h1 style="font-size: 50px; padding-top:20px; padding-bottom:20px;">Browse Movies by Title</h1>
+    <h1 style="font-size: 50px; padding-top:20px; padding-bottom:20px;">Movies</h1>
 
-    <!-- 🔥 Sorting and Page Size Controls -->
     <div class="mb-4 d-flex justify-content-center flex-wrap align-items-center">
         <label for="sort-by" class="mr-2">Sort by:</label>
         <select id="sort-by" class="form-control mx-2" style="width:auto;">
@@ -62,7 +61,6 @@
         </select>
     </div>
 
-    <!-- 🔥 Table Structure -->
     <div style="display: flex; justify-content: center; overflow-x: auto;">
         <table id="movie_table" class="table table-striped" style="text-align: center; width: auto; border: 1px solid white;">
             <thead>
@@ -79,7 +77,6 @@
         </table>
     </div>
 
-    <!-- 🔥 Pagination -->
     <div class="d-flex justify-content-center mt-4">
         <button id="prev-button" class="btn btn-secondary mx-2">Previous</button>
         <button id="next-button" class="btn btn-secondary mx-2">Next</button>

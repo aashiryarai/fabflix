@@ -36,22 +36,28 @@ public class BrowseGenreServlet extends HttpServlet {
 
         resp.setContentType("application/json");
 
+        // Defaults
         if (sortBy == null || (!sortBy.equals("title") && !sortBy.equals("rating"))) {
-            sortBy = "title"; // Default
+            sortBy = "title";
         }
         if (sortOrder == null || (!sortOrder.equals("asc") && !sortOrder.equals("desc"))) {
-            sortOrder = "asc"; // Default
+            sortOrder = "asc";
         }
 
         int offset = (page - 1) * pageSize;
 
         String query =
                 "SELECT m.id, m.title, m.year, m.director, r.rating, " +
-                        " (SELECT GROUP_CONCAT(CONCAT('<a href=\"browse-genre.html?genre=', g.name, '\">', g.name, '</a>') " +
-                        "     ORDER BY g.name SEPARATOR ', ') " +
-                        "  FROM genres_in_movies gim " +
-                        "  JOIN genres g ON gim.genreId = g.id " +
-                        "  WHERE gim.movieId = m.id LIMIT 3) AS genres, " +
+                        // First 3 genres alphabetically
+                        " (SELECT GROUP_CONCAT(name SEPARATOR ', ') FROM ( " +
+                        "     SELECT g.name " +
+                        "     FROM genres_in_movies gim2 " +
+                        "     JOIN genres g ON gim2.genreId = g.id " +
+                        "     WHERE gim2.movieId = m.id " +
+                        "     ORDER BY g.name ASC " +
+                        "     LIMIT 3 " +
+                        " ) AS genre_names) AS genres, " +
+                        // First 3 stars by movie count desc, then name asc
                         " (SELECT GROUP_CONCAT(html_name SEPARATOR ', ') FROM ( " +
                         "     SELECT CONCAT('<a href=\"single-star.html?id=', s.id, '\">', s.name, '</a>') AS html_name " +
                         "     FROM stars s " +
@@ -63,9 +69,12 @@ public class BrowseGenreServlet extends HttpServlet {
                         " ) AS star_names) AS stars " +
                         "FROM movies m " +
                         "JOIN ratings r ON m.id = r.movieId " +
-                        "JOIN genres_in_movies gim_filter ON m.id = gim_filter.movieId " +
-                        "JOIN genres g_filter ON gim_filter.genreId = g_filter.id " +
-                        "WHERE g_filter.name = ? " +
+                        "WHERE m.id IN ( " +
+                        "    SELECT gim.movieId " +
+                        "    FROM genres_in_movies gim " +
+                        "    JOIN genres g ON gim.genreId = g.id " +
+                        "    WHERE g.name = ? " +
+                        ") " +
                         "ORDER BY " + (sortBy.equals("rating") ? "r.rating" : "m.title") + " " + sortOrder + ", " +
                         (sortBy.equals("rating") ? "m.title" : "r.rating") + " " + sortOrder + " " +
                         "LIMIT ? OFFSET ?";
@@ -87,8 +96,8 @@ public class BrowseGenreServlet extends HttpServlet {
                 movie.addProperty("movie_year", rs.getInt("year"));
                 movie.addProperty("movie_director", rs.getString("director"));
                 movie.addProperty("movie_rating", rs.getFloat("rating"));
-                movie.addProperty("movie_genres", rs.getString("genres"));
-                movie.addProperty("movie_stars", rs.getString("stars"));
+                movie.addProperty("movie_genres", rs.getString("genres")); // genre names only
+                movie.addProperty("movie_stars", rs.getString("stars"));   // already hyperlinked
                 result.add(movie);
             }
 

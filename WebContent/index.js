@@ -24,27 +24,26 @@ function loadSessionState() {
 
 
 function handleMovieResult(resultData) {
+    console.log("handleMovieResult", resultData);
     const movieTableBodyElement = $("#star_table_body");
     movieTableBodyElement.empty();
 
-        rowHTML += `<th>${resultData[i]["movie_rating"]}<button class="btn btn-sm btn-success ml-2 add-to-cart" 
+    for (let i = 0; i < resultData.length; i++) {
+        let rowHTML = `
+            <tr>
+                <td><a href="single-movie.html?id=${resultData[i]["movie_id"]}">${resultData[i]["movie_title"]}</a></td>
+                <td>${resultData[i]["movie_year"]}</td>
+                <td>${resultData[i]["movie_director"]}</td>
+                <td>${resultData[i]["movie_genres"]}</td>
+                <td>${resultData[i]["movie_stars"]}</td>
+                <td>
+                    ${resultData[i]["movie_rating"]}
+                    <button class="btn btn-sm btn-success ml-2 add-to-cart" 
                         data-id="${resultData[i]["movie_id"]}" 
                         data-title="${resultData[i]["movie_title"]}">
-                    Add to Cart
-                </button>
-                </th>`;
-        rowHTML += "</tr>";
-
-
-    for (const movie of resultData) {
-        const rowHTML = `
-            <tr>
-                <td><a href="#" onclick="goToSingleMovie('${movie.movie_id}')">${movie.movie_title}</a></td>
-                <td>${movie.movie_year}</td>
-                <td>${movie.movie_director}</td>
-                <td>${movie.movie_genres || ""}</td>
-                <td>${movie.movie_stars || ""}</td>
-                <td>${movie.movie_rating}</td>
+                        Add to Cart
+                    </button>
+                </td>
             </tr>
         `;
         movieTableBodyElement.append(rowHTML);
@@ -52,6 +51,7 @@ function handleMovieResult(resultData) {
 
     $("#prev-button").prop("disabled", currentPage === 1);
 }
+
 $(document).on('click', '.add-to-cart', function () {
     const movieId = $(this).data("id");
     const title = $(this).data("title");
@@ -110,7 +110,7 @@ function performSearch(event) {
 
     currentPage = 1;
 
-    sessionStorage.setItem("origin_page", "index.html"); // 🔥 Save that the user is coming from search
+    sessionStorage.setItem("origin_page", "index.html");
 
     fetchMovies();
 }

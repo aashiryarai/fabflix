@@ -49,12 +49,17 @@ function handleMovieResult(resultData) {
     }
 
     for (const movie of resultData) {
+        const genreLinks = (movie.movie_genres || "")
+            .split(", ")
+            .map(genre => `<a href="browse-genre.html?genre=${encodeURIComponent(genre)}">${genre}</a>`)
+            .join(", ");
+
         const rowHTML = `
             <tr>
                 <td><a href="#" onclick="goToSingleMovie('${movie.movie_id}')">${movie.movie_title}</a></td>
                 <td>${movie.movie_year}</td>
                 <td>${movie.movie_director}</td>
-                <td>${movie.movie_genres || ""}</td>
+                <td>${genreLinks}</td>
                 <td>${movie.movie_stars || ""}</td>
                 <td>${movie.movie_rating}</td>
             </tr>
@@ -64,6 +69,7 @@ function handleMovieResult(resultData) {
 
     $("#prev-button").prop("disabled", currentPage === 1);
 }
+
 
 function fetchMovies() {
     const params = {
@@ -143,18 +149,19 @@ $(document).ready(function() {
         fetchMovies();
     });
 
-    loadSessionState();   // 🚀 Load saved session (page, pageSize, sortBy, sortOrder)
+    // ⭐ NEW LOGIC: Always re-check genre from URL
+    const genreFromURL = getParameterByName('genre');
 
-    // 🚀 Repopulate the dropdowns according to the loaded session values
+    if (genreFromURL) {
+        currentParams = { genre: genreFromURL };
+        currentPage = 1;
+        fetchMovies();
+    } else {
+        loadSessionState();
+        fetchMovies();
+    }
+
     $("#sort-by").val(sortBy);
     $("#sort-order").val(sortOrder);
     $("#page-size").val(pageSize.toString());
-
-    const origin = sessionStorage.getItem("origin_page");
-
-    if (origin && origin.includes("browse-genre.html") && Object.keys(currentParams).length > 0) {
-        fetchMovies();
-    } else {
-        performGenreBrowse();
-    }
 });
