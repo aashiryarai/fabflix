@@ -9,7 +9,7 @@ import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
-
+ import model.User;
 /**
  * This IndexServlet is declared in the web annotation below,
  * which is mapped to the URL pattern /api/index.

@@ -54,13 +54,13 @@ public class LoginFilter implements Filter {
 
     public void init(FilterConfig fConfig) {
         allowedURIs.add("login.html");
-        allowedURIs.add("login.js");
+        //allowedURIs.add("login.js");
         allowedURIs.add("api/login");
-        allowedURIs.add("index.html");
-        allowedURIs.add("index.js");
-        allowedURIs.add("api/genres");
-        allowedURIs.add("api/movies");
-        allowedURIs.add("logout");
+        //allowedURIs.add("index.html");
+        //allowedURIs.add("index.js");
+        //allowedURIs.add("api/genres");
+        //allowedURIs.add("api/movies");
+        //allowedURIs.add("logout");
     }
 
     public void destroy() {
