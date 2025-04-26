@@ -4,13 +4,21 @@
   <title>Shopping Cart</title>
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
 </head>
-<body style="padding: 20px;">
-<a href="index.html" class="btn btn-secondary mb-3">← Back to Movies</a>
+<body style="background-color: lightsteelblue; margin: 0; min-height: 50vh; display: flex; justify-content: center; align-items: center;">
 
-<h1>Your Shopping Cart</h1>
-<div id="cart-container"></div>
-<h3 id="total-price">Total: $0.00</h3>
-<a href="payment.html" class="btn btn-success">Proceed to Payment</a>
+<div style="width: 100%; max-width: 800px;  padding: 30px;  font-family: Verdana;">
+
+  <a style="font-size: 20px; margin-bottom: 50px;" href="index.html" > &larr;Back to Movies</a>
+
+  <h1 style="font-size: 50px;  padding-top:20px;  padding-bottom:20px;">Your Shopping Cart</h1>
+
+  <div id="cart-container"></div>
+
+  <h3 id="total-price" style="margin-top: 20px;">Total: $0.00</h3>
+
+  <a href="payment.html" class="btn btn-success mt-3" style="font-size: 18px;">Proceed to Payment</a>
+
+</div>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="shopping-cart.js"></script>

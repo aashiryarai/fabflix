@@ -5,29 +5,36 @@
   <meta charset="UTF-8">
   <title>Login to Fablix</title>
 </head>
-<body>
-<div style="display:flex; justify-content:space-between; align-items:center; padding:8px;">
-  <span id="user-info">Loading user…</span>
-  <button id="logout-button">Logout</button>
-</div>
-
-<h2>Login to Fablix</h2>
+<body style="background-color: lightsteelblue; margin: 0; height: 50vh; display: flex; justify-content: center; align-items: center;">
+<div style="text-align: center; font-family: Verdana; font-weight: normal; width: 100%; max-width: 400px;">
+<h2 style="font-size: 50px;  padding-top:20px;  padding-bottom:20px;font-weight:normal">Login to Fablix!</h2>
 <!-- We’ll intercept this submit in JS and POST to /api/login -->
-<form id="login_form" method="post" action="#">
-  <label><b>Email</b></label>
-  <input
-          name="email">
-  <br>
-  <label><b>Password</b></label>
-  <input
-          name="password">
-  <br>
-  <input type="submit" value="Login">
-</form>
+  <form id="login_form" method="post" action="#">
+    <div style="margin-bottom: 20px;">
+      <label style="font-size:20px;font-weight:normal;">Email:</label><br>
+      <input name="email"
+             type="email"
+             placeholder="Enter Email"
+             style="width:300px;height:35px;font-size:16px;padding:5px;" required>
+    </div>
 
-<div id="login_error_message" style="color:red;"></div>
+    <div style="margin-bottom: 20px;">
+      <label style="font-size:20px;font-weight:normal;">Password:</label><br>
+      <input name="password"
+             type="password"
+             placeholder="Enter Password"
+             style="width:300px;height:35px;font-size:16px;padding:5px;" required>
+    </div>
+
+    <input type="submit" value="Login"
+           style="font-size:18px;padding:10px 20px;">
+  </form>
+
+
+<div style="font-size:18px;padding:10px 20px;color:red;" id="login_error_message" ></div>
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 <script src="./login.js"></script>
+</div>
 </body>
 </html>

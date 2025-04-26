@@ -4,30 +4,40 @@
   <title>Payment</title>
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
 </head>
-<body style="padding: 30px;">
-<h2>Payment Page</h2>
-<div id="cart-summary"></div>
+<div style="padding: 20px; text-align: left; align-self: flex-start;">
+  <a href="index.html" style="font-size: 20px; ">&larr; Back to Movies</a>
+</div>
+<body style="background-color: lightsteelblue; margin: 0; min-height: 50vh; display: flex; flex-direction: column; align-items: center; padding-top: 10px;">
 
-<form id="payment-form">
-  <div class="form-group">
-    <label>First Name on Card</label>
-    <input type="text" class="form-control" name="firstName" required>
-  </div>
-  <div class="form-group">
-    <label>Last Name on Card</label>
-    <input type="text" class="form-control" name="lastName" required>
-  </div>
-  <div class="form-group">
-    <label>Credit Card Number</label>
-    <input type="text" class="form-control" name="cardNumber" required>
-  </div>
-  <div class="form-group">
-    <label>Expiration Date</label>
-    <input type="date" class="form-control" name="expDate" required>
-  </div>
+<div style="width: 100%; max-width: 450px; font-family: Verdana; text-align: center;">
+  <h2 style="font-size: 50px;  padding-top:10px;  padding-bottom:20px;">Payment Page</h2>
+  <div id="cart-summary" style="font-size: 20px; margin-bottom: 30px;"></div>
 
-  <button type="submit" class="btn btn-primary">Place Order</button>
-</form>
+  <form id="payment-form">
+    <div class="form-group" style="text-align: left;">
+      <label style="font-size: 18px;">First Name on Card</label>
+      <input type="text" class="form-control" name="firstName" required>
+    </div>
+
+    <div class="form-group" style="text-align: left;">
+      <label style="font-size: 18px;">Last Name on Card</label>
+      <input type="text" class="form-control" name="lastName" required>
+    </div>
+
+    <div class="form-group" style="text-align: left;">
+      <label style="font-size: 18px;">Credit Card Number</label>
+      <input type="text" class="form-control" name="cardNumber" required>
+    </div>
+
+    <div class="form-group" style="text-align: left;">
+      <label style="font-size: 18px;">Expiration Date</label>
+      <input type="date" class="form-control" name="expDate" required>
+    </div>
+
+    <button type="submit" class="btn btn-success btn-block" style="font-size: 18px;">Place Order</button>
+  </form>
+
+</div>
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="payment.js"></script>

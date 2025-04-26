@@ -23,7 +23,7 @@ function renderCart(data) {
             <td>
                 <button class="btn btn-sm btn-info update" data-id="${item.movieId}" data-action="increase">+</button>
                 <button class="btn btn-sm btn-warning update" data-id="${item.movieId}" data-action="decrease">-</button>
-                <button class="btn btn-sm btn-danger update" data-id="${item.movieId}" data-action="delete">Remove</button>
+                <button class="btn btn-sm btn-danger update" data-id="${item.movieId}" data-action="delete">Delete</button>
             </td>
         </tr>`;
     });
