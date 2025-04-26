@@ -43,13 +43,17 @@ function handleResult(resultData) {
     resultData.forEach(movie => {
         let row = `
             <tr>
-                <td><a href="single-movie.html?id=${movie.id}">${movie.title}</a></td>
-                <td>${movie.year}</td>
-                <td>${movie.director}</td>
+                <td><a href="single-movie.html?id=${movie.movie_id}">${movie.movie_title}</a></td>
+                <td>${movie.movie_year}</td>
+                <td>${movie.movie_director}</td>
+                <td>${movie.movie_genres}</td>
+                <td>${movie.movie_stars}</td>
+                <td>${movie.movie_rating}</td>
             </tr>`;
         tableBody.append(row);
     });
 }
+
 /**
  * Once this .js is loaded, following scripts will be executed by the browser\
  */

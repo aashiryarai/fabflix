@@ -33,7 +33,7 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
           integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
 
-    <title>Title</title>
+    <title>Fabflix</title>
 </head>
 <script>
     $.ajax({
@@ -55,19 +55,21 @@
 <div style="width:90%; margin: 0 auto; font-family: verdana;">
 
     <a href="index.html">← Back to Movie List</a>
-    <h1>Title Search</h1>
+    <h1>Movie List Search</h1>
 
     <!-- H3 body is left empty here, will be populated with the data retrieved with single-star.js -->
     <!-- single-star.js will find this html element by it's id "star_info" -->
-    <h3 id="genre_info"></h3>
+    <h3 id="title_info"></h3>
     <div style="display: flex; justify-content: center; overflow-x: auto;">
         <table id=movie_table class="table table-striped" style="text-align: center; border: 1px solid white;">
             <thead>
             <tr>
-                <th style="width:40%;font-weight: bold;  padding-top:20px;  padding-bottom:20px;">Title</th>
-                <th style="width:20%;font-weight: bold;  padding-top:20px;  padding-bottom:20px;">Year</th>
-                <th style="width:40%;font-weight: bold;  padding-top:20px;  padding-bottom:20px;">Director</th>
-                <th style="width:25%;font-weight: bold;  padding-top:20px;  padding-bottom:20px;">
+                <th style="width:20%;">Title</th>
+                <th style="width:10%;">Year</th>
+                <th style="width:20%;">Director</th>
+                <th style="width:20%;">Genres</th>
+                <th style="width:20%;">Stars</th>
+                <th style="width:10%;">Rating</th>
             </tr>
             </thead>
 

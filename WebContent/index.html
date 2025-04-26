@@ -23,6 +23,7 @@
           integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
     <title>Movie List</title>
 </head>
+
 <script>
     $.ajax({
         url: "api/index",
@@ -35,15 +36,21 @@
         }
     });
 </script>
+
 <body style="background-color:lightsteelblue;">
 <div style="display:flex; justify-content:space-between; align-items:center; padding:8px;">
     <span id="user-info">Loading user…</span>
-    <button id="logout-button">Logout</button>
+    <div>
+        <button id="logout-button" style="margin-right:8px;">Logout</button>
+        <button id="login-button">Login</button>
+    </div>
 </div>
+
 <div id="genre-links" class="mb-3"></div>
 <div id="title-links" class="mb-3 d-flex flex-wrap justify-content-center"></div>
+
 <div style="width:90%; margin: 0 auto; font-family: verdana;">
-    <h1 style="font-size: 50px;  padding-top:20px;  padding-bottom:20px;">Movies</h1>
+    <h1 style="font-size: 50px; padding-top:20px; padding-bottom:20px;">Movies</h1>
 
     <form id="search-form" class="mb-4">
         <input type="text" id="title" placeholder="Title">
@@ -53,42 +60,73 @@
         <button type="submit">Search</button>
     </form>
 
+    <!-- 🔥 Added Sorting and Page Size Controls -->
+    <div class="mb-4 d-flex justify-content-center flex-wrap align-items-center">
+        <label for="sort-by" class="mr-2">Sort by:</label>
+        <select id="sort-by" class="form-control mx-2" style="width:auto;">
+            <option value="title">Title</option>
+            <option value="rating">Rating</option>
+        </select>
+
+        <label for="sort-order" class="ml-4 mr-2">Order:</label>
+        <select id="sort-order" class="form-control mx-2" style="width:auto;">
+            <option value="asc">Ascending</option>
+            <option value="desc">Descending</option>
+        </select>
+
+        <label for="page-size" class="ml-4 mr-2">Movies per page:</label>
+        <select id="page-size" class="form-control mx-2" style="width:auto;">
+            <option value="10">10</option>
+            <option value="25">25</option>
+            <option value="50">50</option>
+            <option value="100">100</option>
+        </select>
+    </div>
+
     <div style="display: flex; justify-content: center; overflow-x: auto;">
-        <table id="star_table" class="table table-striped" style="text-align: center; width: auto;border: 1px solid white;">
+        <table id="star_table" class="table table-striped" style="text-align: center; width: auto; border: 1px solid white;">
             <thead>
-            <tr style="padding-top:10px;  padding-bottom:10px;">
-                <th style="width:25%;font-weight: bold;  padding-top:20px;  padding-bottom:20px;">Movie Title</th>
-                <th style="width:5%;font-weight: bold; padding-top:20px;  padding-bottom:20px;">Year</th>
-                <th style="width:15%;font-weight: bold; padding-top:20px;  padding-bottom:20px;">Director</th>
-                <th style="width:15%;font-weight: bold; padding-top:20px;  padding-bottom:20px;">Genres</th>
-                <th style="width:25%;font-weight: bold; padding-top:20px;  padding-bottom:20px;">Stars</th>
-                <th style="width:5%;font-weight: bold; padding-top:20px;  padding-bottom:20px;">Rating</th>
+            <tr style="padding-top:10px; padding-bottom:10px;">
+                <th style="width:25%;font-weight: bold;">Movie Title</th>
+                <th style="width:5%;font-weight: bold;">Year</th>
+                <th style="width:15%;font-weight: bold;">Director</th>
+                <th style="width:15%;font-weight: bold;">Genres</th>
+                <th style="width:25%;font-weight: bold;">Stars</th>
+                <th style="width:5%;font-weight: bold;">Rating</th>
             </tr>
             </thead>
             <tbody id="star_table_body"></tbody>
         </table>
     </div>
 
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
-    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            fetch('api/genres')
-                .then(res => res.json())
-                .then(genres => {
-                    const container = document.getElementById("genre-links");
-                    console.log("Genres:", genres); // ← sanity check
-                    genres.forEach(g => {
-                        const link = document.createElement("a");
-                        link.href = `browse-genre.html?genre=${encodeURIComponent(g)}`;
-                        link.className = "badge badge-info mx-1 my-1";
-                        link.innerText = g;
-                        container.appendChild(link);
-                    });
-                })
-                .catch(err => console.error("Genre fetch failed:", err));
-        });
+    <!-- 🔥 Pagination Controls -->
+    <div class="d-flex justify-content-center mt-4">
+        <button id="prev-button" class="btn btn-secondary mx-2">Previous</button>
+        <button id="next-button" class="btn btn-secondary mx-2">Next</button>
+    </div>
+
+</div>
+
+<!-- Scripts -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        fetch('api/genres')
+            .then(res => res.json())
+            .then(genres => {
+                const container = document.getElementById("genre-links");
+                genres.forEach(g => {
+                    const link = document.createElement("a");
+                    link.href = `browse-genre.html?genre=${encodeURIComponent(g)}`;
+                    link.className = "badge badge-info mx-1 my-1";
+                    link.innerText = g;
+                    container.appendChild(link);
+                });
+            })
+            .catch(err => console.error("Genre fetch failed:", err));
 
         const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ*".split('');
         const titleContainer = document.getElementById("title-links");
@@ -100,8 +138,10 @@
             link.innerText = letter;
             titleContainer.appendChild(link);
         });
-    </script>
-    <script src="index.js"></script>
-</div>
+    });
+</script>
+
+<script src="index.js"></script>
+
 </body>
 </html>
