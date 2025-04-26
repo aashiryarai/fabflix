@@ -15,12 +15,9 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 
-// Declaring a WebServlet called SingleStarServlet, which maps to url "/api/single-star"
 @WebServlet(name = "SingleStarServlet", urlPatterns = "/api/single-star")
 public class SingleStarServlet extends HttpServlet {
     private static final long serialVersionUID = 2L;
-
-    // Create a dataSource which registered in web.xml
     private DataSource dataSource;
 
     public void init(ServletConfig config) {
@@ -31,90 +28,55 @@ public class SingleStarServlet extends HttpServlet {
         }
     }
 
-    /**
-     * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse
-     * response)
-     */
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-
-        response.setContentType("application/json"); // Response mime type
-
-        // Retrieve parameter id from url request.
-        String id = request.getParameter("id");
-
-        // The log message can be found in localhost log
-        request.getServletContext().log("getting id: " + id);
-
-        // Output stream to STDOUT
+        response.setContentType("application/json");
         PrintWriter out = response.getWriter();
+        String starId = request.getParameter("id");
 
-        // Get a connection from dataSource and let resource manager close the connection after usage.
+        request.getServletContext().log("Getting star id: " + starId);
+
         try (Connection conn = dataSource.getConnection()) {
-            // Get a connection from dataSource
+            StringBuilder queryBuilder = new StringBuilder();
 
-            //whatever is already available in stars table
-            String query = "SELECT * FROM stars WHERE id = ?";
-            PreparedStatement statement = conn.prepareStatement(query);
-            statement.setString(1, id);
+            queryBuilder.append("SELECT s.id, s.name, s.birthYear, ")
+                    .append("(SELECT GROUP_CONCAT(")
+                    .append("    CONCAT('<a href=\"single-movie.html?id=', m.id, '\">', m.title, '</a>') ")
+                    .append("    ORDER BY m.year DESC, m.title ASC SEPARATOR ', ') ")
+                    .append(" FROM stars_in_movies sim ")
+                    .append(" JOIN movies m ON sim.movieId = m.id ")
+                    .append(" WHERE sim.starId = s.id) AS movies ")
+                    .append("FROM stars s ")
+                    .append("WHERE s.id = ? ");
+
+            PreparedStatement statement = conn.prepareStatement(queryBuilder.toString());
+            statement.setString(1, starId);
+
             ResultSet rs = statement.executeQuery();
-
             JsonArray jsonArray = new JsonArray();
-            JsonObject jsonObject = new JsonObject();
 
-
-            if(rs.next()){
+            if (rs.next()) {
+                JsonObject jsonObject = new JsonObject();
+                jsonObject.addProperty("star_id", rs.getString("id"));
                 jsonObject.addProperty("star_name", rs.getString("name"));
-                jsonObject.addProperty("year_of_birth", rs.getString("birthYear"));
+                jsonObject.addProperty("year_of_birth", rs.getString("birthYear") == null ? "N/A" : rs.getString("birthYear"));
+                jsonObject.addProperty("star_movies", rs.getString("movies") == null ? "" : rs.getString("movies"));
+                jsonArray.add(jsonObject);
             }
 
             rs.close();
             statement.close();
 
-            //movie query separate
-            String movie_query = "SELECT m.id AS movieId, m.title AS movieName FROM stars_in_movies sm JOIN movies m ON sm.movieId = m.id WHERE sm.starId = ?";
-            PreparedStatement m_statement = conn.prepareStatement(movie_query);
-            m_statement.setString(1, id);
-            ResultSet rs_m = m_statement.executeQuery();
-
-            JsonArray moviesArray = new JsonArray();
-
-            while (rs_m.next()) {
-
-                JsonObject movieObject = new JsonObject();
-                movieObject.addProperty("movie_id", rs_m.getString("movieId"));
-                movieObject.addProperty("movie_name", rs_m.getString("movieName"));
-                moviesArray.add(movieObject);
-            }
-            jsonObject.add("movies", moviesArray);
-
-            rs_m.close();
-            m_statement.close();
-
-            jsonArray.add(jsonObject);
-            /*System.out.println("Reached the servlet!");
-            System.out.println(jsonArray.toString());*/
-
-            // Write JSON string to output
             out.write(jsonArray.toString());
-            // Set response status to 200 (OK)
             response.setStatus(200);
 
         } catch (Exception e) {
-            // Write error message JSON object to output
-            JsonObject jsonObject = new JsonObject();
-            jsonObject.addProperty("errorMessage", e.getMessage());
-            out.write(jsonObject.toString());
-
-            // Log error to localhost log
+            JsonObject error = new JsonObject();
+            error.addProperty("errorMessage", e.getMessage());
+            out.write(error.toString());
             request.getServletContext().log("Error:", e);
-            // Set response status to 500 (Internal Server Error)
             response.setStatus(500);
         } finally {
             out.close();
         }
-
-        // Always remember to close db connection after usage. Here it's done by try-with-resources
-
     }
-
 }

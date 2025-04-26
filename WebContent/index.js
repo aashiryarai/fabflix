@@ -2,7 +2,7 @@ let currentPage = 1;
 let pageSize = 10;
 let sortBy = "title";
 let sortOrder = "asc";
-let currentParams = {};  // Search or browse params (title/year/etc.)
+let currentParams = {}; // Search conditions: title, year, director, star
 
 function saveSessionState() {
     sessionStorage.setItem("currentPage", currentPage);
@@ -23,28 +23,24 @@ function loadSessionState() {
 }
 
 function handleMovieResult(resultData) {
-    let starTableBodyElement = jQuery("#star_table_body");
-    starTableBodyElement.empty();
+    const movieTableBodyElement = $("#star_table_body");
+    movieTableBodyElement.empty();
 
-    for (let i = 0; i < resultData.length; i++) {
-        let rowHTML = "<tr>";
-        rowHTML += `<td><a href="single-movie.html?id=${resultData[i]["movie_id"]}">${resultData[i]["movie_title"]}</a></td>`;
-        rowHTML += `<td>${resultData[i]["movie_year"]}</td>`;
-        rowHTML += `<td>${resultData[i]["movie_director"]}</td>`;
-        rowHTML += `<td>${resultData[i]["movie_genres"]}</td>`;
-        rowHTML += `<td>${resultData[i]["movie_stars"]}</td>`;
-        rowHTML += `<td>${resultData[i]["movie_rating"]}</td>`;
-        rowHTML += "</tr>";
-
-        starTableBodyElement.append(rowHTML);
+    for (const movie of resultData) {
+        const rowHTML = `
+            <tr>
+                <td><a href="#" onclick="goToSingleMovie('${movie.movie_id}')">${movie.movie_title}</a></td>
+                <td>${movie.movie_year}</td>
+                <td>${movie.movie_director}</td>
+                <td>${movie.movie_genres || ""}</td>
+                <td>${movie.movie_stars || ""}</td>
+                <td>${movie.movie_rating}</td>
+            </tr>
+        `;
+        movieTableBodyElement.append(rowHTML);
     }
 
-    // Disable Previous button if on page 1
-    if (currentPage === 1) {
-        $("#prev-button").prop("disabled", true);
-    } else {
-        $("#prev-button").prop("disabled", false);
-    }
+    $("#prev-button").prop("disabled", currentPage === 1);
 }
 
 function fetchMovies() {
@@ -65,13 +61,13 @@ function fetchMovies() {
         dataType: "json",
         success: handleMovieResult,
         error: function(xhr) {
-            console.log("Fetch failed:", xhr.responseText);
+            console.error("Fetch failed:", xhr.responseText);
         }
     });
 }
 
-function performSearch(e) {
-    e.preventDefault();
+function performSearch(event) {
+    event.preventDefault();
 
     currentParams = {
         title: $("#title").val(),
@@ -86,10 +82,19 @@ function performSearch(e) {
     }
 
     currentPage = 1;
+
+    sessionStorage.setItem("origin_page", "index.html"); // 🔥 Save that the user is coming from search
+
     fetchMovies();
 }
 
-// Sorting and pagination controls
+
+function goToSingleMovie(movieId) {
+    saveSessionState();
+    window.location.href = `single-movie.html?id=${movieId}`;
+}
+
+// Event Listeners
 $("#sort-by").change(function() {
     sortBy = $(this).val();
     currentPage = 1;
@@ -136,13 +141,27 @@ $.ajax({
 $("#logout-button").click(() => window.location.replace("logout"));
 $("#login-button").click(() => window.location.replace("login.html"));
 
-$(document).ready(function () {
+// Main
+$(document).ready(function() {
     loadSessionState();
 
-    if (Object.keys(currentParams).length > 0) {
-        fetchMovies();  // Only fetch if params exist from session
+    // Only auto-fetch if origin_page was set (coming back from single-movie/star), NOT from browse pages
+    const origin = sessionStorage.getItem("origin_page");
+
+    if (origin && origin.includes("index.html") && Object.keys(currentParams).length > 0) {
+        fetchMovies();
+
+        // Repopulate search fields
+        $("#title").val(currentParams.title || "");
+        $("#year").val(currentParams.year || "");
+        $("#director").val(currentParams.director || "");
+        $("#star").val(currentParams.star || "");
+
+        // Repopulate dropdowns
+        $("#sort-by").val(sortBy);
+        $("#sort-order").val(sortOrder);
+        $("#page-size").val(pageSize.toString());
     }
 
     $("#search-form").submit(performSearch);
 });
-
