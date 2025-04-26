@@ -6,6 +6,17 @@ function fetchCart() {
         error: () => alert("Failed to load cart.")
     });
 }
+$.ajax({
+    url: "api/index",
+    method: "GET",
+    dataType: "json",
+    success: function(data) {
+        $("#user-info").text("Signed in as: " + data.username);
+    },
+    error: function() {
+        window.location.replace("login.html");
+    }
+});
 
 function renderCart(data) {
     let html = '<table class="table"><thead><tr><th>Title</th><th>Qty</th><th>Price</th><th>Total</th><th>Action</th></tr></thead><tbody>';

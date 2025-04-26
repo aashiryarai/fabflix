@@ -4,6 +4,18 @@
   <title>Shopping Cart</title>
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css">
 </head>
+<script>
+  $.ajax({
+    url: "api/index",
+    method: "GET",
+    success: function(data) {
+      console.log("User logged in:", data);
+    },
+    error: function() {
+      window.location.replace("login.html");
+    }
+  });
+</script>
 <body style="background-color: lightsteelblue; margin: 0; min-height: 50vh; display: flex; justify-content: center; align-items: center;">
 
 <div style="width: 100%; max-width: 800px;  padding: 30px;  font-family: Verdana;">

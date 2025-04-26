@@ -14,3 +14,14 @@ $(document).ready(() => {
             .fail(() => alert("Payment failed. Please check your card info."));
     });
 });
+$.ajax({
+    url: "api/index",
+    method: "GET",
+    dataType: "json",
+    success: function(data) {
+        $("#user-info").text("Signed in as: " + data.username);
+    },
+    error: function() {
+        window.location.replace("login.html");
+    }
+});
