@@ -10,23 +10,36 @@
  */
 
 /**
- * Retrieve parameter from request URL, matching by parameter name
- * @param target String
- * @returns {*}
+ * Retrieve parameter from request URL
  */
-function getParameterByName(target) {
-    let url = window.location.href;
-    target = target.replace(/[\[\]]/g, "\\$&");
-    let regex = new RegExp("[?&]" + target + "(=([^&#]*)|&|#|$)"),
-        results = regex.exec(url);
-    if (!results) return null;
-    if (!results[2]) return '';
-    return decodeURIComponent(results[2].replace(/\+/g, " "));
+function getParameterByName(name) {
+    const url = new URL(window.location.href);
+    return url.searchParams.get(name);
 }
 
 /**
- * Handles the data returned by the API, reads the jsonObject and populates data into html elements
- * @param resultData jsonObject
+ * Save session before leaving
+ */
+function saveSessionState() {
+    // You should already have stored necessary info from previous page
+    // (currentParams, sortBy, sortOrder, etc.)
+    // Nothing special here if you're just viewing single star.
+}
+
+/**
+ * Go back to previous browsing page
+ */
+function goBackToPrevious() {
+    const origin = sessionStorage.getItem("origin_page");
+    if (origin) {
+        window.location.href = origin;
+    } else {
+        window.location.href = "index.html"; // fallback
+    }
+}
+
+/**
+ * Handles the data returned by the API
  */
 function handleResult(resultData) {
     console.log("handleResult: populating star info from resultData");
@@ -41,7 +54,6 @@ function handleResult(resultData) {
         yearOfBirth = "N/A";
     }
 
-    // Populate the basic star info
     starInfoElement.append(
         "<p><b>Star Name:</b> " + star["star_name"] + "</p>" +
         "<p><b>Year of Birth:</b> " + yearOfBirth + "</p>"
@@ -58,11 +70,6 @@ function handleResult(resultData) {
     movieTableBodyElement.append(rowHTML);
 }
 
-/**
- * Once this .js is loaded, following scripts will be executed by the browser
- */
-
-// Get star id from URL
 let starId = getParameterByName('id');
 
 $.ajax({
@@ -78,13 +85,10 @@ $.ajax({
     }
 });
 
-// Logout click handler
-$("#logout-button").click(function() {
-    window.location.replace("logout");
-});
-$("#checkout-button").click(() => window.location.href = "shopping-cart.html");
+$("#logout-button").click(() => window.location.replace("logout"));
 
-// Load star info
+$("#back-button").click(() => goBackToPrevious());
+
 jQuery.ajax({
     dataType: "json",
     method: "GET",
