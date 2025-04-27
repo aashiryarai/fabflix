@@ -56,7 +56,15 @@ function handleMovieResult(resultData) {
                 <td>${movie.movie_director}</td>
                 <td>${movie.movie_genres || ""}</td>
                 <td>${movie.movie_stars || ""}</td>
-                <td>${movie.movie_rating}</td>
+                <td>
+                  ${movie.movie_rating}
+                  <button
+                    class="btn btn-sm btn-success ml-2 add-to-cart"
+                    data-id="${movie.movie_id}"
+                    data-title="${movie.movie_title}">
+                    Add to Cart
+                  </button>
+                </td>
             </tr>
         `;
         movieTableBodyElement.append(rowHTML);
@@ -64,7 +72,22 @@ function handleMovieResult(resultData) {
 
     $("#prev-button").prop("disabled", currentPage === 1);
 }
+$(document).on('click', '.add-to-cart', function () {
+    const movieId = $(this).data("id");
+    const title   = $(this).data("title");
 
+    $.ajax({
+        url: "api/cart",
+        method: "POST",
+        data: {
+            action: "add",
+            movieId: movieId,
+            title: title
+        },
+        success: () => alert(`${title} added to cart!`),
+        error:   () => alert("Failed to add to cart.")
+    });
+});
 function fetchMovies() {
     const params = {
         ...currentParams,
@@ -111,6 +134,7 @@ $(document).ready(function() {
     });
 
     $("#logout-button").click(() => window.location.replace("logout"));
+    $("#checkout-button").click(() => window.location.href = "shopping-cart.html");
     $("#login-button").click(() => window.location.replace("login.html"));
 
     $("#sort-by").change(function() {

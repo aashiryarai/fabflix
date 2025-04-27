@@ -1,3 +1,5 @@
+// browse-genre.js
+
 let currentPage = 1;
 let pageSize = 10;
 let sortBy = "title";
@@ -10,16 +12,16 @@ function saveSessionState() {
     sessionStorage.setItem("sortBy", sortBy);
     sessionStorage.setItem("sortOrder", sortOrder);
     sessionStorage.setItem("currentParams", JSON.stringify(currentParams));
-    sessionStorage.setItem("origin_page", "browse-genre.html"); // Mark user is browsing genre
+    sessionStorage.setItem("origin_page", "browse-genre.html");
 }
 
 function loadSessionState() {
     if (sessionStorage.getItem("currentPage")) {
-        currentPage = parseInt(sessionStorage.getItem("currentPage"));
-        pageSize = parseInt(sessionStorage.getItem("pageSize"));
-        sortBy = sessionStorage.getItem("sortBy");
-        sortOrder = sessionStorage.getItem("sortOrder");
-        currentParams = JSON.parse(sessionStorage.getItem("currentParams"));
+        currentPage    = parseInt(sessionStorage.getItem("currentPage"));
+        pageSize       = parseInt(sessionStorage.getItem("pageSize"));
+        sortBy         = sessionStorage.getItem("sortBy");
+        sortOrder      = sessionStorage.getItem("sortOrder");
+        currentParams  = JSON.parse(sessionStorage.getItem("currentParams"));
     }
 }
 
@@ -42,6 +44,7 @@ function handleMovieResult(resultData) {
     const movieTableBodyElement = $("#movie_table_body");
     movieTableBodyElement.empty();
 
+    // If no results but not on the first page, go back a page
     if (resultData.length === 0 && currentPage > 1) {
         currentPage--;
         fetchMovies();
@@ -51,17 +54,30 @@ function handleMovieResult(resultData) {
     for (const movie of resultData) {
         const genreLinks = (movie.movie_genres || "")
             .split(", ")
-            .map(genre => `<a href="browse-genre.html?genre=${encodeURIComponent(genre)}">${genre}</a>`)
-            .join(", ");
+            .map(genre =>
+                `<a href="browse-genre.html?genre=${encodeURIComponent(genre)}">${genre}</a>`
+            ).join(", ");
 
         const rowHTML = `
             <tr>
-                <td><a href="#" onclick="goToSingleMovie('${movie.movie_id}')">${movie.movie_title}</a></td>
+                <td>
+                  <a href="#" onclick="goToSingleMovie('${movie.movie_id}')">
+                    ${movie.movie_title}
+                  </a>
+                </td>
                 <td>${movie.movie_year}</td>
                 <td>${movie.movie_director}</td>
                 <td>${genreLinks}</td>
                 <td>${movie.movie_stars || ""}</td>
-                <td>${movie.movie_rating}</td>
+                <td>
+                  ${movie.movie_rating}
+                  <button
+                    class="btn btn-sm btn-success ml-2 add-to-cart"
+                    data-id="${movie.movie_id}"
+                    data-title="${movie.movie_title}">
+                    Add to Cart
+                  </button>
+                </td>
             </tr>
         `;
         movieTableBodyElement.append(rowHTML);
@@ -70,6 +86,22 @@ function handleMovieResult(resultData) {
     $("#prev-button").prop("disabled", currentPage === 1);
 }
 
+$(document).on('click', '.add-to-cart', function () {
+    const movieId = $(this).data("id");
+    const title   = $(this).data("title");
+
+    $.ajax({
+        url: "api/cart",
+        method: "POST",
+        data: {
+            action: "add",
+            movieId: movieId,
+            title: title
+        },
+        success: () => alert(`${title} added to cart!`),
+        error:   () => alert("Failed to add to cart.")
+    });
+});
 
 function fetchMovies() {
     const params = {
@@ -88,73 +120,67 @@ function fetchMovies() {
         data: params,
         dataType: "json",
         success: handleMovieResult,
-        error: function(xhr) {
-            console.error("Fetch failed:", xhr.responseText);
-        }
+        error:   xhr => console.error("Fetch failed:", xhr.responseText)
     });
 }
 
 function performGenreBrowse() {
-    currentParams = {
-        genre: getParameterByName('genre') || ""
-    };
-    currentPage = 1;
+    currentParams  = { genre: getParameterByName('genre') || "" };
+    currentPage    = 1;
     fetchMovies();
 }
 
-$(document).ready(function() {
-    // Authentication
+$(document).ready(() => {
+    // Authentication check
     $.ajax({
         url: "api/index",
         method: "GET",
         dataType: "json",
-        success: function(data) {
+        success: data => {
             $("#user-info").text("Signed in as: " + data.username);
         },
-        error: function() {
-            window.location.replace("login.html");
-        }
+        error: () => window.location.replace("login.html")
     });
 
     $("#logout-button").click(() => window.location.replace("logout"));
+    $("#checkout-button").click(() => window.location.href = "shopping-cart.html");
     $("#login-button").click(() => window.location.replace("login.html"));
 
     $("#sort-by").change(function() {
-        sortBy = $(this).val();
+        sortBy      = $(this).val();
         currentPage = 1;
         fetchMovies();
     });
 
     $("#sort-order").change(function() {
-        sortOrder = $(this).val();
+        sortOrder   = $(this).val();
         currentPage = 1;
         fetchMovies();
     });
 
     $("#page-size").change(function() {
-        pageSize = parseInt($(this).val());
+        pageSize    = parseInt($(this).val());
         currentPage = 1;
         fetchMovies();
     });
 
-    $("#prev-button").click(function() {
+    $("#prev-button").click(() => {
         if (currentPage > 1) {
             currentPage--;
             fetchMovies();
         }
     });
 
-    $("#next-button").click(function() {
+    $("#next-button").click(() => {
         currentPage++;
         fetchMovies();
     });
 
-    // ⭐ NEW LOGIC: Always re-check genre from URL
+    // On load: either resume session or start fresh by genre URL
     const genreFromURL = getParameterByName('genre');
-
     if (genreFromURL) {
         currentParams = { genre: genreFromURL };
-        currentPage = 1;
+        currentPage   = 1;
         fetchMovies();
     } else {
         loadSessionState();

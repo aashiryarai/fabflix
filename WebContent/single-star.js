@@ -82,6 +82,7 @@ $.ajax({
 $("#logout-button").click(function() {
     window.location.replace("logout");
 });
+$("#checkout-button").click(() => window.location.href = "shopping-cart.html");
 
 // Load star info
 jQuery.ajax({
