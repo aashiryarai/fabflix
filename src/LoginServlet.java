@@ -33,6 +33,17 @@ public class LoginServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request,
                           HttpServletResponse response)
             throws IOException {
+        String gRecaptchaResponse = request.getParameter("g-recaptcha-response");
+
+        try {
+            RecaptchaVerifyUtils.verify(gRecaptchaResponse);
+        } catch (Exception e) {
+            JsonObject errorJsonObject = new JsonObject();
+            errorJsonObject.addProperty("status", "fail");
+            errorJsonObject.addProperty("message", "reCAPTCHA verification failed: " + e.getMessage());
+            response.getWriter().write(errorJsonObject.toString());
+            return;
+        }
         String email    = request.getParameter("email");
         String password = request.getParameter("password");
 
