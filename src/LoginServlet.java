@@ -1,7 +1,8 @@
 package servlets;
 
-import model.User;                  // <— make sure this matches your package
+import model.User;
 import com.google.gson.JsonObject;
+import org.jasypt.util.password.StrongPasswordEncryptor;
 
 import javax.naming.InitialContext;
 import javax.naming.NamingException;
@@ -44,7 +45,7 @@ public class LoginServlet extends HttpServlet {
             response.getWriter().write(errorJsonObject.toString());
             return;
         }
-        String email    = request.getParameter("email");
+        String email = request.getParameter("email");
         String password = request.getParameter("password");
 
         response.setContentType("application/json");
@@ -60,28 +61,34 @@ public class LoginServlet extends HttpServlet {
 
         try (Connection conn = dataSource.getConnection();
              PreparedStatement ps = conn.prepareStatement(
-                     "SELECT id, firstName, lastName FROM customers "
-                             + "WHERE email = ? AND password = ?")) {
+                     "SELECT id, firstName, lastName, password FROM customers WHERE email = ?")) {
 
             ps.setString(1, email);
-            ps.setString(2, password);
 
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
-                    int customerId   = rs.getInt("id");
-                    String firstName = rs.getString("firstName");
-                    String lastName  = rs.getString("lastName");
+                    String encryptedPassword = rs.getString("password");
 
-                    HttpSession session = request.getSession();
-                    session.setAttribute("user", new User(email));
-                    session.setAttribute("userId", customerId);
+                    StrongPasswordEncryptor encryptor = new StrongPasswordEncryptor();
+                    if (encryptor.checkPassword(password, encryptedPassword)) {
+                        int customerId = rs.getInt("id");
+                        String firstName = rs.getString("firstName");
+                        String lastName = rs.getString("lastName");
 
-                    json.addProperty("status", "success");
+                        HttpSession session = request.getSession();
+                        session.setAttribute("user", new User(email));
+                        session.setAttribute("userId", customerId);
+
+                        json.addProperty("status", "success");
+                    } else {
+                        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                        json.addProperty("status", "fail");
+                        json.addProperty("message", "Invalid email or password");
+                    }
                 } else {
                     response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
                     json.addProperty("status", "fail");
-                    json.addProperty("message",
-                            "Invalid email or password");
+                    json.addProperty("message", "Invalid email or password");
                 }
             }
         } catch (SQLException e) {
