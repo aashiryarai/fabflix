@@ -4,8 +4,10 @@
 <head>
   <meta charset="UTF-8">
   <title>Login to Fabflix</title>
+  <script src='https://www.google.com/recaptcha/api.js' type="text/javascript"></script>
 </head>
-<body style="background-color: lightsteelblue; margin: 0; height: 50vh; display: flex; justify-content: center; align-items: center;">
+<body style="background-color: lightsteelblue; margin: 0; height: 80vh; display: flex; justify-content: center; align-items: center;">
+
 <div style="text-align: center; font-family: Verdana; font-weight: normal; width: 100%; max-width: 400px;">
 <h2 style="font-size: 50px;  padding-top:20px;  padding-bottom:20px;font-weight:normal">Login to Fablix!</h2>
 <!-- We’ll intercept this submit in JS and POST to /api/login -->
@@ -28,6 +30,9 @@
 
     <input type="submit" value="Login"
            style="font-size:18px;padding:10px 20px;">
+    <div style="padding-top:20px;  padding-bottom:20px;margin: 0;" class="g-recaptcha" data-sitekey="6LfAgzArAAAAAG10EPW_ZkY3NlI1VGKptjWr29Ap"></div>
+
+
   </form>
 
 

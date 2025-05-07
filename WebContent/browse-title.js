@@ -178,6 +178,7 @@ $(document).ready(function() {
         fetchMovies();
     }
 
+
     $("#sort-by").val(sortBy);
     $("#sort-order").val(sortOrder);
     $("#page-size").val(pageSize.toString());
