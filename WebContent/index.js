@@ -1,63 +1,197 @@
-/**
- * This example is following frontend and backend separation.
- *
- * Before this .js is loaded, the html skeleton is created.
- *
- * This .js performs two steps:
- *      1. Use jQuery to talk to backend API to get the json data.
- *      2. Populate the data to correct html elements.
- */
+let currentPage = 1;
+let pageSize = 10;
+let sortBy = "title";
+let sortOrder = "asc";
+let currentParams = {}; // Search conditions: title, year, director, star
 
+function saveSessionState() {
+    sessionStorage.setItem("currentPage", currentPage);
+    sessionStorage.setItem("pageSize", pageSize);
+    sessionStorage.setItem("sortBy", sortBy);
+    sessionStorage.setItem("sortOrder", sortOrder);
+    sessionStorage.setItem("currentParams", JSON.stringify(currentParams));
+}
 
-/**
- * Handles the data returned by the API, read the jsonObject and populate data into html elements
- * @param resultData jsonObject
- */
-function handleStarResult(resultData) {
-    console.log("handleStarResult: populating star table from resultData");
-
-    // Populate the star table
-    // Find the empty table body by id "star_table_body"
-    let starTableBodyElement = jQuery("#star_table_body");
-
-    // Iterate through resultData, no more than 10 entries
-    for (let i = 0; i < Math.min(20, resultData.length); i++) {
-
-        // Concatenate the html tags with resultData jsonObject
-        let rowHTML = "";
-        rowHTML += "<tr>";
-        rowHTML += "<th>" +
-            '<a href="single-movie.html?id=' + resultData[i]['movie_id'] + '">' +
-            resultData[i]["movie_title"] +
-            '</a>' +
-            "</th>";
-        rowHTML += "<th>" + resultData[i]["movie_year"] + "</th>";
-        rowHTML += "<th>" + resultData[i]["movie_director"] + "</th>";
-        rowHTML += "<th>" + resultData[i]["movie_genres"] + "</th>";
-        //rowHTML += "<th>" + resultData[i]["movie_stars"] + "</th>";
-        let starsArray = resultData[i]["movie_stars"];
-        let starsString = starsArray.map(star =>
-            `<a href="single-star.html?id=${star.star_id}">${star.star_name}</a>`
-        ).join(", ");
-        rowHTML += "<th>" + starsString + "</th>";
-
-        rowHTML += "<th>" + resultData[i]["movie_rating"] + "</th>";
-        rowHTML += "</tr>";
-
-        // Append the row created to the table body, which will refresh the page
-        starTableBodyElement.append(rowHTML);
+function loadSessionState() {
+    if (sessionStorage.getItem("currentPage")) {
+        currentPage = parseInt(sessionStorage.getItem("currentPage"));
+        pageSize = parseInt(sessionStorage.getItem("pageSize"));
+        sortBy = sessionStorage.getItem("sortBy");
+        sortOrder = sessionStorage.getItem("sortOrder");
+        currentParams = JSON.parse(sessionStorage.getItem("currentParams"));
     }
 }
 
 
-/**
- * Once this .js is loaded, following scripts will be executed by the browser
- */
+function handleMovieResult(resultData) {
+    console.log("handleMovieResult", resultData);
+    const movieTableBodyElement = $("#star_table_body");
+    movieTableBodyElement.empty();
 
-// Makes the HTTP GET request and registers on success callback function handleStarResult
-jQuery.ajax({
-    dataType: "json", // Setting return data type
-    method: "GET", // Setting request method
-    url: "api/movies", // Setting request url, which is mapped by StarsServlet in Stars.java
-    success: (resultData) => handleStarResult(resultData) // Setting callback function to handle data returned successfully by the StarsServlet
+    for (let i = 0; i < resultData.length; i++) {
+        let rowHTML = `
+            <tr>
+                <td><a href="single-movie.html?id=${resultData[i]["movie_id"]}">${resultData[i]["movie_title"]}</a></td>
+                <td>${resultData[i]["movie_year"]}</td>
+                <td>${resultData[i]["movie_director"]}</td>
+                <td>${resultData[i]["movie_genres"]}</td>
+                <td>${resultData[i]["movie_stars"]}</td>
+                <td>
+                    ${resultData[i]["movie_rating"]}
+                    <button class="btn btn-sm btn-success ml-2 add-to-cart" 
+                        data-id="${resultData[i]["movie_id"]}" 
+                        data-title="${resultData[i]["movie_title"]}">
+                        Add to Cart
+                    </button>
+                </td>
+            </tr>
+        `;
+        movieTableBodyElement.append(rowHTML);
+    }
+
+    $("#prev-button").prop("disabled", currentPage === 1);
+}
+
+$(document).on('click', '.add-to-cart', function () {
+    const movieId = $(this).data("id");
+    const title = $(this).data("title");
+
+    $.ajax({
+        url: "api/cart",
+        method: "POST",
+        data: {
+            action: "add",
+            movieId: movieId,
+            title: title
+        },
+        success: () => alert(`${title} added to cart!`),
+        error: () => alert("Failed to add to cart.")
+    });
+});
+
+
+function fetchMovies() {
+    const params = {
+        ...currentParams,
+        sortBy,
+        sortOrder,
+        page: currentPage,
+        pageSize
+    };
+
+    saveSessionState();
+
+    $.ajax({
+        url: "api/movies",
+        method: "GET",
+        data: params,
+        dataType: "json",
+        success: handleMovieResult,
+        error: function(xhr) {
+            console.error("Fetch failed:", xhr.responseText);
+        }
+    });
+}
+
+function performSearch(event) {
+    event.preventDefault();
+
+    currentParams = {
+        title: $("#title").val(),
+        year: $("#year").val(),
+        director: $("#director").val(),
+        star: $("#star").val()
+    };
+
+    if (!currentParams.title && !currentParams.year && !currentParams.director && !currentParams.star) {
+        alert("Please provide at least one search field.");
+        return;
+    }
+
+    currentPage = 1;
+
+    sessionStorage.setItem("origin_page", "index.html");
+
+    fetchMovies();
+}
+
+
+function goToSingleMovie(movieId) {
+    saveSessionState();
+    window.location.href = `single-movie.html?id=${movieId}`;
+}
+
+// Event Listeners
+$("#sort-by").change(function() {
+    sortBy = $(this).val();
+    currentPage = 1;
+    fetchMovies();
+});
+
+$("#sort-order").change(function() {
+    sortOrder = $(this).val();
+    currentPage = 1;
+    fetchMovies();
+});
+
+$("#page-size").change(function() {
+    pageSize = parseInt($(this).val());
+    currentPage = 1;
+    fetchMovies();
+});
+
+$("#prev-button").click(function() {
+    if (currentPage > 1) {
+        currentPage--;
+        fetchMovies();
+    }
+});
+
+$("#next-button").click(function() {
+    currentPage++;
+    fetchMovies();
+});
+
+// Authentication check
+$.ajax({
+    url: "api/index",
+    method: "GET",
+    dataType: "json",
+    success: function(data) {
+        $("#user-info").text("Signed in as: " + data.username);
+    },
+    error: function() {
+        window.location.replace("login.html");
+    }
+});
+
+$("#logout-button").click(() => window.location.replace("logout"));
+
+$("#checkout-button").click(() => window.location.href = "shopping-cart.html");
+
+$("#search-form").submit(performSearch);
+
+// Main
+$(document).ready(function() {
+    loadSessionState();
+
+    // Only auto-fetch if origin_page was set (coming back from single-movie/star), NOT from browse pages
+    const origin = sessionStorage.getItem("origin_page");
+
+    if (origin && origin.includes("index.html") && Object.keys(currentParams).length > 0) {
+        fetchMovies();
+
+        // Repopulate search fields
+        $("#title").val(currentParams.title || "");
+        $("#year").val(currentParams.year || "");
+        $("#director").val(currentParams.director || "");
+        $("#star").val(currentParams.star || "");
+
+        // Repopulate dropdowns
+        $("#sort-by").val(sortBy);
+        $("#sort-order").val(sortOrder);
+        $("#page-size").val(pageSize.toString());
+    }
+
+    $("#search-form").submit(performSearch);
 });

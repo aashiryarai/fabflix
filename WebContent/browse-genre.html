@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <style>
+    body {
+      background-color: lightblue;
+      font-family: Verdana;
+    }
+    h1 {
+      color: blue;
+      text-align: center;
+    }
+    p {
+      font-family: verdana;
+    }
+    #star_table th, #star_table td {
+      font-weight: normal;
+    }
+  </style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+        integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+  <title>Movies By Genre</title>
+</head>
+
+<body style="background-color:lightsteelblue;">
+<div style="display:flex; justify-content:space-between; align-items:center; padding:8px;">
+  <span id="user-info">Loading user…</span>
+
+  <button id="checkout-button">Checkout</button>
+  <button id="logout-button">Logout</button>
+
+</div>
+
+<div style="width:90%; margin: 0 auto; font-family: verdana;">
+  <a href="index.html" class="btn btn-link">← Back to Movie List</a>
+  <h1 style="font-size: 50px; padding-top:20px; padding-bottom:20px;">Movies</h1>
+
+  <div class="mb-4 d-flex justify-content-center flex-wrap align-items-center">
+    <label for="sort-by" class="mr-2">Sort by:</label>
+    <select id="sort-by" class="form-control mx-2" style="width:auto;">
+      <option value="title">Title</option>
+      <option value="rating">Rating</option>
+    </select>
+
+    <label for="sort-order" class="ml-4 mr-2">Order:</label>
+    <select id="sort-order" class="form-control mx-2" style="width:auto;">
+      <option value="asc">Ascending</option>
+      <option value="desc">Descending</option>
+    </select>
+
+    <label for="page-size" class="ml-4 mr-2">Movies per page:</label>
+    <select id="page-size" class="form-control mx-2" style="width:auto;">
+      <option value="10">10</option>
+      <option value="25">25</option>
+      <option value="50">50</option>
+      <option value="100">100</option>
+    </select>
+  </div>
+
+  <div style="display: flex; justify-content: center; overflow-x: auto;">
+    <table id="movie_table" class="table table-striped" style="text-align: center; width: auto; border: 1px solid white;">
+      <thead>
+      <tr style="padding-top:10px; padding-bottom:10px;">
+        <th style="width:25%;font-weight: bold;">Movie Title</th>
+        <th style="width:5%;font-weight: bold;">Year</th>
+        <th style="width:15%;font-weight: bold;">Director</th>
+        <th style="width:15%;font-weight: bold;">Genres</th>
+        <th style="width:25%;font-weight: bold;">Stars</th>
+        <th style="width:5%;font-weight: bold;">Rating</th>
+      </tr>
+      </thead>
+      <tbody id="movie_table_body"></tbody>
+    </table>
+  </div>
+
+
+  <div class="d-flex justify-content-center mt-4">
+    <button id="prev-button" class="btn btn-secondary mx-2">Previous</button>
+    <button id="next-button" class="btn btn-secondary mx-2">Next</button>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+<script src="browse-genre.js"></script>
+</body>
+</html>

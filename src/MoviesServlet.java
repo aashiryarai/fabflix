@@ -14,15 +14,10 @@ import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.Statement;
 
-
-// Declaring a WebServlet called StarsServlet, which maps to url "/api/stars"
 @WebServlet(name = "MoviesServlet", urlPatterns = "/api/movies")
 public class MoviesServlet extends HttpServlet {
     private static final long serialVersionUID = 1L;
-
-    // Create a dataSource which registered in web.
     private DataSource dataSource;
 
     public void init(ServletConfig config) {
@@ -33,115 +28,127 @@ public class MoviesServlet extends HttpServlet {
         }
     }
 
-    /**
-     * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
-     */
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-
-        response.setContentType("application/json"); // Response mime type
-
-        // Output stream to STDOUT
+        response.setContentType("application/json");
         PrintWriter out = response.getWriter();
 
-        // Get a connection from dataSource and let resource manager close the connection after usage.
+        String title = request.getParameter("title");
+        String year = request.getParameter("year");
+        String director = request.getParameter("director");
+        String star = request.getParameter("star");
+
+        String sortBy = request.getParameter("sortBy") == null ? "title" : request.getParameter("sortBy");
+        String sortOrder = request.getParameter("sortOrder") == null ? "asc" : request.getParameter("sortOrder");
+        int page = request.getParameter("page") == null ? 1 : Integer.parseInt(request.getParameter("page"));
+        int pageSize = request.getParameter("pageSize") == null ? 10 : Integer.parseInt(request.getParameter("pageSize"));
+
         try (Connection conn = dataSource.getConnection()) {
+            StringBuilder queryBuilder = new StringBuilder();
 
-            // Declare our statement
-            Statement statement = conn.createStatement();
+            queryBuilder.append("SELECT m.id, m.title, m.year, m.director, r.rating, ")
+                    // Genres: first 3, alphabetically
+                    .append("(SELECT GROUP_CONCAT(")
+                    .append("    CONCAT('<a href=\"browse-genre.html?genre=', g.name, '\">', g.name, '</a>') ")
+                    .append("    ORDER BY g.name SEPARATOR ', ') ")
+                    .append(" FROM genres_in_movies gim ")
+                    .append(" JOIN genres g ON gim.genreId = g.id ")
+                    .append(" WHERE gim.movieId = m.id ")
+                    .append(" LIMIT 3) AS genres, ")
+                    // Stars: first 3 by movie count
+                    .append("(SELECT GROUP_CONCAT(html_name SEPARATOR ', ') FROM (")
+                    .append("    SELECT CONCAT('<a href=\"single-star.html?id=', s.id, '\">', s.name, '</a>') AS html_name ")
+                    .append("    FROM stars s ")
+                    .append("    JOIN stars_in_movies sim1 ON s.id = sim1.starId ")
+                    .append("    WHERE sim1.movieId = m.id ")
+                    .append("    GROUP BY s.id ")
+                    .append("    ORDER BY (SELECT COUNT(*) FROM stars_in_movies sim2 WHERE sim2.starId = s.id) DESC, s.name ASC ")
+                    .append("    LIMIT 3 ")
+                    .append(") AS limited_stars) AS stars ")
+                    .append("FROM movies m ")
+                    .append("JOIN ratings r ON m.id = r.movieId ");
 
-            String query = "SELECT * FROM movies m JOIN ratings r ON m.id = r.movieId ORDER BY r.rating DESC ";
+            // Only join with stars if star search
+            if (star != null && !star.isEmpty()) {
+                queryBuilder.append("JOIN stars_in_movies sim ON m.id = sim.movieId ")
+                        .append("JOIN stars s ON sim.starId = s.id ");
+            }
 
-            // Perform the query
-            ResultSet rs = statement.executeQuery(query);
-            //ResultSet rs1 = statement.executeQuery(query);
+            queryBuilder.append("WHERE 1=1 ");
 
+            if (title != null && !title.isEmpty()) {
+                queryBuilder.append("AND m.title LIKE ? ");
+            }
+            if (year != null && !year.isEmpty()) {
+                queryBuilder.append("AND m.year = ? ");
+            }
+            if (director != null && !director.isEmpty()) {
+                queryBuilder.append("AND m.director LIKE ? ");
+            }
+            if (star != null && !star.isEmpty()) {
+                queryBuilder.append("AND s.name LIKE ? ");
+            }
+
+            queryBuilder.append("GROUP BY m.id, m.title, m.year, m.director, r.rating ");
+
+            // Sort
+            if (sortBy.equals("rating")) {
+                queryBuilder.append("ORDER BY r.rating ").append(sortOrder.toUpperCase()).append(", m.title ASC ");
+            } else {
+                queryBuilder.append("ORDER BY m.title ").append(sortOrder.toUpperCase()).append(", r.rating DESC ");
+            }
+
+            // Pagination
+            queryBuilder.append("LIMIT ? OFFSET ?");
+
+            PreparedStatement statement = conn.prepareStatement(queryBuilder.toString());
+            int index = 1;
+
+            if (title != null && !title.isEmpty()) {
+                statement.setString(index++, "%" + title + "%");
+            }
+            if (year != null && !year.isEmpty()) {
+                statement.setInt(index++, Integer.parseInt(year));
+            }
+            if (director != null && !director.isEmpty()) {
+                statement.setString(index++, "%" + director + "%");
+            }
+            if (star != null && !star.isEmpty()) {
+                statement.setString(index++, "%" + star + "%");
+            }
+
+            statement.setInt(index++, pageSize);
+            statement.setInt(index++, (page - 1) * pageSize);
+
+            ResultSet rs = statement.executeQuery();
             JsonArray jsonArray = new JsonArray();
 
-            // Iterate through each row of rs
             while (rs.next()) {
-
-                // Create a JsonObject based on the data we retrieve from rs
                 JsonObject jsonObject = new JsonObject();
-                String movieId = rs.getString("id");
-                jsonObject.addProperty("movie_id", movieId);
+                jsonObject.addProperty("movie_id", rs.getString("id"));
                 jsonObject.addProperty("movie_title", rs.getString("title"));
                 jsonObject.addProperty("movie_year", rs.getInt("year"));
                 jsonObject.addProperty("movie_director", rs.getString("director"));
-                /*
-                jsonObject.addProperty("star_id", star_id);
-                jsonObject.addProperty("star_name", star_name);
-                jsonObject.addProperty("star_dob", star_dob); */
-                Statement g_statement = conn.createStatement();
-                String genre_query = String.format(
-                        "SELECT g.name AS genreName " +
-                                "FROM genres_in_movies gm " +
-                                "JOIN genres g ON gm.genreId = g.id " +
-                                "WHERE gm.movieId = '%s' " +
-                                "LIMIT 3", movieId
-                );
-                ResultSet rs_g = g_statement.executeQuery(genre_query);
-                String genres = "";
-                while(rs_g.next()){
-                    genres += rs_g.getString("genreName");
-                    genres += ", ";
-                }
-                jsonObject.addProperty("movie_genres", genres);
-
-                rs_g.close();
-                g_statement.close();
-
-
-                String star_query = "SELECT s.id AS starId, s.name AS starName FROM stars_in_movies sm JOIN stars s ON sm.starId = s.id WHERE sm.movieId = ? LIMIT 3;";
-                PreparedStatement s_statement = conn.prepareStatement(star_query);
-                s_statement.setString(1, movieId);
-                ResultSet rs_s = s_statement.executeQuery();
-                JsonArray starsArray = new JsonArray();
-
-                //String stars = "";
-                while(rs_s.next()){
-                    JsonObject starObject = new JsonObject();
-                    starObject.addProperty("star_id", rs_s.getString("starId"));
-                    starObject.addProperty("star_name", rs_s.getString("starName"));
-                    starsArray.add(starObject);
-                }
-                jsonObject.add("movie_stars", starsArray);
-
-                rs_s.close();
-                s_statement.close();
-
                 jsonObject.addProperty("movie_rating", rs.getFloat("rating"));
-
+                jsonObject.addProperty("movie_genres", rs.getString("genres"));
+                jsonObject.addProperty("movie_stars", rs.getString("stars"));
                 jsonArray.add(jsonObject);
-
             }
 
             rs.close();
             statement.close();
 
-
-            // Log to localhost log
             request.getServletContext().log("getting " + jsonArray.size() + " results");
-
-            // Write JSON string to output
             out.write(jsonArray.toString());
-            // Set response status to 200 (OK)
             response.setStatus(200);
 
-
         } catch (Exception e) {
-
-            // Write error message JSON object to output
             JsonObject jsonObject = new JsonObject();
             jsonObject.addProperty("errorMessage", e.getMessage());
             out.write(jsonObject.toString());
-
-            // Set response status to 500 (Internal Server Error)
+            request.getServletContext().log("Error:", e);
             response.setStatus(500);
         } finally {
             out.close();
         }
-
-        // Always remember to close db connection after usage. Here it's done by try-with-resources
-
     }
 }

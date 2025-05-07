@@ -13,29 +13,19 @@
         p {
             font-family: verdana;
         }
-        #star_table th, #star_table td {
+        #movie_table th, #movie_table td {
             font-weight: normal;
         }
     </style>
+
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
           integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
-    <title>Movie List</title>
-</head>
 
-<script>
-    $.ajax({
-        url: "api/index",
-        method: "GET",
-        success: function(data) {
-            console.log("User logged in:", data);
-        },
-        error: function() {
-            window.location.replace("login.html");
-        }
-    });
-</script>
+    <title>Movies By Title</title>
+</head>
 
 <body style="background-color:lightsteelblue;">
 <div style="display:flex; justify-content:space-between; align-items:center; padding:8px;">
@@ -46,21 +36,10 @@
 
 </div>
 
-<div id="genre-links" class="mb-3"></div>
-<div id="title-links" class="mb-3 d-flex flex-wrap justify-content-center"></div>
-
 <div style="width:90%; margin: 0 auto; font-family: verdana;">
+    <a href="index.html" class="btn btn-link">← Back to Movie List</a>
     <h1 style="font-size: 50px; padding-top:20px; padding-bottom:20px;">Movies</h1>
 
-    <form id="search-form" class="mb-4">
-        <input type="text" id="title" placeholder="Title">
-        <input type="text" id="year" placeholder="Year">
-        <input type="text" id="director" placeholder="Director">
-        <input type="text" id="star" placeholder="Star Name">
-        <button type="submit">Search</button>
-    </form>
-
-    <!-- 🔥 Added Sorting and Page Size Controls -->
     <div class="mb-4 d-flex justify-content-center flex-wrap align-items-center">
         <label for="sort-by" class="mr-2">Sort by:</label>
         <select id="sort-by" class="form-control mx-2" style="width:auto;">
@@ -84,7 +63,7 @@
     </div>
 
     <div style="display: flex; justify-content: center; overflow-x: auto;">
-        <table id="star_table" class="table table-striped" style="text-align: center; width: auto; border: 1px solid white;">
+        <table id="movie_table" class="table table-striped" style="text-align: center; width: auto; border: 1px solid white;">
             <thead>
             <tr style="padding-top:10px; padding-bottom:10px;">
                 <th style="width:25%;font-weight: bold;">Movie Title</th>
@@ -95,16 +74,14 @@
                 <th style="width:5%;font-weight: bold;">Rating</th>
             </tr>
             </thead>
-            <tbody id="star_table_body"></tbody>
+            <tbody id="movie_table_body"></tbody>
         </table>
     </div>
 
-    <!--  Pagination Controls -->
     <div class="d-flex justify-content-center mt-4">
         <button id="prev-button" class="btn btn-secondary mx-2">Previous</button>
         <button id="next-button" class="btn btn-secondary mx-2">Next</button>
     </div>
-
 </div>
 
 <!-- Scripts -->
@@ -112,36 +89,30 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
 
+<!-- Your page-specific JS -->
+<script src="browse-title.js"></script>
+
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
-        fetch('api/genres')
-            .then(res => res.json())
-            .then(genres => {
-                const container = document.getElementById("genre-links");
-                genres.forEach(g => {
-                    const link = document.createElement("a");
-                    link.href = `browse-genre.html?genre=${encodeURIComponent(g)}`;
-                    link.className = "badge badge-info mx-1 my-1";
-                    link.innerText = g;
-                    container.appendChild(link);
-                });
-            })
-            .catch(err => console.error("Genre fetch failed:", err));
+    // Authentication check
+    $.ajax({
+        url: "api/index",
+        method: "GET",
+        success: function(data) {
+            $("#user-info").text("Signed in as: " + data.username);
+        },
+        error: function() {
+            window.location.replace("login.html");
+        }
+    });
 
-        const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ*".split('');
-        const titleContainer = document.getElementById("title-links");
+    $("#logout-button").click(function() {
+        window.location.replace("logout");
+    });
 
-        alphabet.forEach(letter => {
-            const link = document.createElement("a");
-            link.href = `browse-title.html?startsWith=${encodeURIComponent(letter)}`;
-            link.className = "badge badge-primary mx-1 my-1";
-            link.innerText = letter;
-            titleContainer.appendChild(link);
-        });
+    $("#login-button").click(function() {
+        window.location.replace("login.html");
     });
 </script>
-
-<script src="index.js"></script>
 
 </body>
 </html>

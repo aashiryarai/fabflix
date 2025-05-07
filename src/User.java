@@ -1,0 +1,18 @@
+/**
+ * This User class only has the username field in this example.
+ * You can add more attributes such as the user's shopping cart items.
+ */
+package model;
+public class User {
+
+    private final String username;
+
+    public User(String username) {
+
+
+        this.username = username;
+    }
+    public String getUsername() { return username; }
+
+}
+
