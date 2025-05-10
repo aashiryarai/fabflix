@@ -65,7 +65,7 @@ public class MoviesServlet extends HttpServlet {
                     .append("    LIMIT 3 ")
                     .append(") AS limited_stars) AS stars ")
                     .append("FROM movies m ")
-                    .append("JOIN ratings r ON m.id = r.movieId ");
+                    .append("LEFT JOIN ratings r ON m.id = r.movieId ");
 
             // Only join with stars if star search
             if (star != null && !star.isEmpty()) {
