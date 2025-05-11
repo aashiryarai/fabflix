@@ -5,7 +5,7 @@ public class MainImporter {
     public static void main(String[] args) {
         try {
             Connection conn = DriverManager.getConnection(
-                    "jdbc:mysql://localhost:3306/moviedb", "root", "Akash13579!");
+                    "jdbc:mysql://localhost:3306/moviedb", "mytestuser", "My6$Password");
 
             conn.setAutoCommit(false); // turn off autocommit for performance
 
