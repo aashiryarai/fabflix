@@ -25,7 +25,6 @@ public class CastsParser {
             System.out.println("Could not open invalid_casts.txt for logging.");
             return;
         }
-
         loadExistingRelations();
         loadStarsIntoMap();
         loadValidMovieIds();
@@ -60,7 +59,6 @@ public class CastsParser {
             e.printStackTrace();
         }
     }
-
     private void loadValidMovieIds() {
         try (Statement stmt = connection.createStatement();
              ResultSet rs = stmt.executeQuery("SELECT id FROM movies")) {
@@ -73,7 +71,6 @@ public class CastsParser {
             e.printStackTrace();
         }
     }
-
     private void parseXmlFile(String filePath) {
         try {
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -109,19 +106,16 @@ public class CastsParser {
                         errorLog.printf("Skipped cast: missing fid or actor [%s / %s]%n", fid, actorName);
                         continue;
                     }
-
                     if (!validMovieIds.contains(fid)) {
                         errorLog.printf("Movie not found for fid '%s'. Skipping actor '%s'%n", fid, actorName);
                         continue;
                     }
-
                     String trimmedName = actorName.trim();
                     String starId = starNameToId.get(trimmedName);
                     if (starId == null) {
                         errorLog.printf("Star not found for actor '%s' (fid: %s)%n", actorName, fid);
                         continue;
                     }
-
                     String pairKey = starId + "|" + fid;
                     if (existingPairs.contains(pairKey)) {
                         errorLog.printf("Duplicate relation skipped: (%s, %s)%n", starId, fid);
@@ -137,7 +131,6 @@ public class CastsParser {
 
             insert.executeBatch();
             connection.commit();
-
         } catch (SQLException e) {
             System.out.println("Batch insert failed. Rolling back.");
             e.printStackTrace();
@@ -148,7 +141,6 @@ public class CastsParser {
             }
         }
     }
-
     private String getTextValue(Element parent, String tag) {
         NodeList list = parent.getElementsByTagName(tag);
         if (list.getLength() > 0) {
@@ -162,7 +154,6 @@ public class CastsParser {
         }
         return null;
     }
-
 
     public static void main(String[] args) {
         try {

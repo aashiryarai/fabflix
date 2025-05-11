@@ -23,8 +23,11 @@ $("#add-star-form").submit((event) => {
         data: $("#add-star-form").serialize(),
         dataType: "json",
         success: (response) => {
-
-            $("#add-star-result").text(response.message || "Star added.");
+            let msg = response.message || "Star added.";
+            if (response.id) {
+                msg += " Star ID: " + response.id;
+            }
+            $("#add-star-result").text(msg);
         },
         error: (xhr) => {
             $("#add-star-result").text("Failed to add star. Check server.");

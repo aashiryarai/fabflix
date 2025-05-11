@@ -16,22 +16,19 @@ public class ActorsParser {
     public ActorsParser(Connection conn) {
         this.connection = conn;
     }
-
     public void run() {
         try {
             errorLog = new PrintWriter(new FileWriter("invalid_actors.txt", true));
         } catch (IOException e) {
-            System.out.println("Could not open log file for writing.");
+            System.out.println("Could not open log file for wrting");
             return;
         }
-
         loadExistingStarNames();
         loadMaxStarId();
         parseXmlFile("stanford-movies/actors63.xml");
         parseDocument();
         errorLog.close();
     }
-
     private void loadExistingStarNames() {
         try (Statement stmt = connection.createStatement();
              ResultSet rs = stmt.executeQuery("SELECT id, name FROM stars")) {
@@ -61,7 +58,6 @@ public class ActorsParser {
         currentStarId++;
         return String.format("nm%07d", currentStarId);
     }
-
     private void parseXmlFile(String filePath) {
         try {
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -73,7 +69,6 @@ public class ActorsParser {
             e.printStackTrace();
         }
     }
-
     private void parseDocument() {
         Element root = dom.getDocumentElement();
         NodeList actorList = root.getElementsByTagName("actor");
@@ -96,7 +91,7 @@ public class ActorsParser {
                 String dobStr = getTextValue(actor, "dob");
 
                 if (name == null || name.trim().isEmpty()) {
-                    errorLog.printf("Skipped actor at index %d: missing name%n", i);
+                    errorLog.printf("Skipped actor--> index %d: missing name%n", i);
                     skippedCount++;
                     continue;
                 }
@@ -136,7 +131,7 @@ public class ActorsParser {
             insertWithDob.executeBatch();
             insertWithoutDob.executeBatch();
             connection.commit();
-            System.out.printf("Done. Inserted: %d | Skipped: %d%n", insertedCount, skippedCount);
+            System.out.printf("Success. Inserted: %d | Skipped: %d%n", insertedCount, skippedCount);
 
         } catch (SQLException e) {
             System.out.println("Batch insert failed. Rolling back.");
@@ -148,7 +143,6 @@ public class ActorsParser {
             }
         }
     }
-
     private String getTextValue(Element parent, String tag) {
         NodeList list = parent.getElementsByTagName(tag);
         if (list.getLength() > 0) {
@@ -162,7 +156,6 @@ public class ActorsParser {
         }
         return null;
     }
-
 
     public static void main(String[] args) {
         try {
