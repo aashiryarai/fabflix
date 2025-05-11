@@ -1,3 +1,19 @@
+$(document).ready(() => {
+    $.ajax({
+        url: "api/session",
+        method: "GET",
+        dataType: "json",
+        success: (response) => {
+            if (!response.isEmployee) {
+                window.location.replace("dashboard-login.html");
+            }
+        },
+        error: () => {
+            window.location.replace("dashboard-login.html");
+        }
+    });
+});
+
 // ADD STAR HANDLING
 $("#add-star-form").submit((event) => {
     event.preventDefault();
@@ -7,6 +23,7 @@ $("#add-star-form").submit((event) => {
         data: $("#add-star-form").serialize(),
         dataType: "json",
         success: (response) => {
+
             $("#add-star-result").text(response.message || "Star added.");
         },
         error: (xhr) => {
