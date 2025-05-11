@@ -167,17 +167,20 @@ $(document).ready(function() {
         fetchMovies();
     });
 
-    loadSessionState();
+    const startsWithFromURL = getParameterByName('startsWith');
+
+    if (startsWithFromURL) {
+        currentParams = { startsWith: startsWithFromURL };
+        currentPage = 1;
+        fetchMovies();
+    } else {
+        loadSessionState();
+        fetchMovies();
+    }
+
 
     $("#sort-by").val(sortBy);
     $("#sort-order").val(sortOrder);
     $("#page-size").val(pageSize.toString());
 
-    const origin = sessionStorage.getItem("origin_page");
-
-    if (origin && origin.includes("browse-title.html") && Object.keys(currentParams).length > 0) {
-        fetchMovies();
-    } else {
-        performTitleBrowse();
-    }
 });

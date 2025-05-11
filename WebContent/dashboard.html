@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Fabflix Admin Dashboard</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+</head>
+<body style="font-family: Arial, sans-serif; background-color: #f0f0f0; padding: 30px;">
+<a href="index.html">Browse Movies</a>
+<h1>Fabflix Admin Dashboard</h1>
+
+<!-- Add Star -->
+<section>
+    <h2>Add a New Star</h2>
+    <form id="add-star-form">
+        <label>Name:</label><br>
+        <input type="text" name="name" required><br><br>
+        <label>Birth Year (optional):</label><br>
+        <input type="number" name="birthYear"><br><br>
+        <input type="submit" value="Add Star">
+    </form>
+    <div id="add-star-result" style="color: green;"></div>
+</section>
+
+<!-- Metadata -->
+<section>
+    <h2>Database Metadata</h2>
+    <button id="load-metadata">Load Metadata</button>
+    <div id="metadata-result"></div>
+</section>
+
+<!-- Add Movie -->
+<section>
+    <h2>Add a New Movie</h2>
+    <form id="add-movie-form" action="#" method="post">
+        <label>Title:</label><br>
+        <input type="text" name="title" required><br><br>
+        <label>Year:</label><br>
+        <input type="number" name="year" required><br><br>
+        <label>Director:</label><br>
+        <input type="text" name="director" required><br><br>
+        <label>Star Name:</label><br>
+        <input type="text" name="starName" required><br><br>
+        <label>Genre Name:</label><br>
+        <input type="text" name="genreName" required><br><br>
+        <input type="submit" value="Add Movie">
+    </form>
+    <div id="add-movie-result" style="color: green;"></div>
+</section>
+
+<script src="./dashboard.js"></script>
+</body>
+</html>
