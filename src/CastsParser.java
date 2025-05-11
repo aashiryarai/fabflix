@@ -12,17 +12,26 @@ public class CastsParser {
     private Set<String> existingPairs = new HashSet<>();
     private Map<String, String> starNameToId = new HashMap<>();
     private Set<String> validMovieIds = new HashSet<>();
+    private PrintWriter errorLog;
 
     public CastsParser(Connection conn) {
         this.connection = conn;
     }
 
     public void run() {
+        try {
+            errorLog = new PrintWriter(new FileWriter("invalid_casts.txt", true));
+        } catch (IOException e) {
+            System.out.println("Could not open invalid_casts.txt for logging.");
+            return;
+        }
+
         loadExistingRelations();
         loadStarsIntoMap();
         loadValidMovieIds();
         parseXmlFile("stanford-movies/casts124.xml");
         parseDocument();
+        errorLog.close();
     }
 
     private void loadExistingRelations() {
@@ -97,29 +106,32 @@ public class CastsParser {
                     String actorName = getTextValue(castEntry, "a");
 
                     if (fid == null || actorName == null || actorName.trim().isEmpty()) {
-                        System.out.printf("⚠️ Skipped cast with missing fid or actor: [%s / %s]%n", fid, actorName);
+                        errorLog.printf("Skipped cast: missing fid or actor [%s / %s]%n", fid, actorName);
                         continue;
                     }
 
                     if (!validMovieIds.contains(fid)) {
-                        System.out.printf("⚠️ Movie not found for fid '%s'. Skipping actor '%s'.%n", fid, actorName);
+                        errorLog.printf("Movie not found for fid '%s'. Skipping actor '%s'%n", fid, actorName);
                         continue;
                     }
 
                     String trimmedName = actorName.trim();
                     String starId = starNameToId.get(trimmedName);
                     if (starId == null) {
-                        System.out.printf("⚠️ Star not found for actor '%s' (fid: %s)%n", actorName, fid);
+                        errorLog.printf("Star not found for actor '%s' (fid: %s)%n", actorName, fid);
                         continue;
                     }
 
                     String pairKey = starId + "|" + fid;
-                    if (!existingPairs.contains(pairKey)) {
-                        insert.setString(1, starId);
-                        insert.setString(2, fid);
-                        insert.addBatch();
-                        existingPairs.add(pairKey);
+                    if (existingPairs.contains(pairKey)) {
+                        errorLog.printf("Duplicate relation skipped: (%s, %s)%n", starId, fid);
+                        continue;
                     }
+
+                    insert.setString(1, starId);
+                    insert.setString(2, fid);
+                    insert.addBatch();
+                    existingPairs.add(pairKey);
                 }
             }
 
@@ -127,7 +139,7 @@ public class CastsParser {
             connection.commit();
 
         } catch (SQLException e) {
-            System.out.println("❌ Batch insert failed. Rolling back.");
+            System.out.println("Batch insert failed. Rolling back.");
             e.printStackTrace();
             try {
                 connection.rollback();
@@ -139,11 +151,18 @@ public class CastsParser {
 
     private String getTextValue(Element parent, String tag) {
         NodeList list = parent.getElementsByTagName(tag);
-        if (list.getLength() > 0 && list.item(0).getFirstChild() != null) {
-            return list.item(0).getFirstChild().getNodeValue().trim();
+        if (list.getLength() > 0) {
+            Node node = list.item(0).getFirstChild();
+            if (node != null) {
+                String value = node.getNodeValue();
+                if (value != null) {
+                    return value.trim();
+                }
+            }
         }
         return null;
     }
+
 
     public static void main(String[] args) {
         try {

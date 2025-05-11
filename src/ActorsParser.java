@@ -11,16 +11,25 @@ public class ActorsParser {
     private Connection connection;
     private Map<String, String> existingStarNames = new HashMap<>();
     private int currentStarId = 0;
+    private PrintWriter errorLog;
 
     public ActorsParser(Connection conn) {
         this.connection = conn;
     }
 
     public void run() {
+        try {
+            errorLog = new PrintWriter(new FileWriter("invalid_actors.txt", true));
+        } catch (IOException e) {
+            System.out.println("Could not open log file for writing.");
+            return;
+        }
+
         loadExistingStarNames();
         loadMaxStarId();
         parseXmlFile("stanford-movies/actors63.xml");
         parseDocument();
+        errorLog.close();
     }
 
     private void loadExistingStarNames() {
@@ -29,7 +38,6 @@ public class ActorsParser {
             while (rs.next()) {
                 existingStarNames.put(rs.getString("name"), rs.getString("id"));
             }
-            System.out.println("Loaded " + existingStarNames.size() + " existing stars.");
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -88,12 +96,13 @@ public class ActorsParser {
                 String dobStr = getTextValue(actor, "dob");
 
                 if (name == null || name.trim().isEmpty()) {
-                    System.out.println("⚠️ Skipped actor with missing name.");
+                    errorLog.printf("Skipped actor at index %d: missing name%n", i);
                     skippedCount++;
                     continue;
                 }
 
                 if (existingStarNames.containsKey(name)) {
+                    errorLog.printf("Skipped duplicate actor: %s%n", name);
                     skippedCount++;
                     continue;
                 }
@@ -115,7 +124,7 @@ public class ActorsParser {
                     existingStarNames.put(name, newId);
                     insertedCount++;
                 } catch (NumberFormatException e) {
-                    System.out.printf("⚠️ Invalid DOB '%s' for star '%s'. Inserting as NULL.%n", dobStr, name);
+                    errorLog.printf("Invalid DOB for star '%s': '%s'. Inserted without DOB.%n", name, dobStr);
                     insertWithoutDob.setString(1, newId);
                     insertWithoutDob.setString(2, name);
                     insertWithoutDob.addBatch();
@@ -127,10 +136,10 @@ public class ActorsParser {
             insertWithDob.executeBatch();
             insertWithoutDob.executeBatch();
             connection.commit();
-            System.out.printf("✅ Done! Inserted: %d | Skipped: %d%n", insertedCount, skippedCount);
+            System.out.printf("Done. Inserted: %d | Skipped: %d%n", insertedCount, skippedCount);
 
         } catch (SQLException e) {
-            System.out.println("❌ Batch insert failed. Rolling back.");
+            System.out.println("Batch insert failed. Rolling back.");
             e.printStackTrace();
             try {
                 connection.rollback();
@@ -142,11 +151,18 @@ public class ActorsParser {
 
     private String getTextValue(Element parent, String tag) {
         NodeList list = parent.getElementsByTagName(tag);
-        if (list.getLength() > 0 && list.item(0).getFirstChild() != null) {
-            return list.item(0).getFirstChild().getNodeValue().trim();
+        if (list.getLength() > 0) {
+            Node node = list.item(0).getFirstChild();
+            if (node != null) {
+                String value = node.getNodeValue();
+                if (value != null) {
+                    return value.trim();
+                }
+            }
         }
         return null;
     }
+
 
     public static void main(String[] args) {
         try {

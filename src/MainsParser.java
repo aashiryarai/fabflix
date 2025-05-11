@@ -11,15 +11,25 @@ public class MainsParser {
     private Connection connection;
     private Set<String> existingMovieIds = new HashSet<>();
     private Set<String> existingGenres = new HashSet<>();
+    private PrintWriter errorLog;
 
     public MainsParser(Connection conn) {
         this.connection = conn;
     }
 
     public void run() {
+        try {
+            errorLog = new PrintWriter(new FileWriter("invalid_movies.txt", true));
+        } catch (IOException e) {
+            System.out.println("Failed to open log file.");
+            return;
+        }
+
         loadExistingIds();
         parseXmlFile("stanford-movies/mains243.xml");
         parseDocument();
+
+        errorLog.close();
     }
 
     private void loadExistingIds() {
@@ -79,8 +89,13 @@ public class MainsParser {
                     if (fid == null || fid.trim().isEmpty() ||
                             title == null || title.trim().isEmpty() ||
                             yearStr == null || yearStr.trim().isEmpty() ||
-                            directorName == null || directorName.trim().isEmpty() ||
-                            existingMovieIds.contains(fid)) {
+                            directorName == null || directorName.trim().isEmpty()) {
+                        errorLog.printf("Missing required field - Movie skipped: fid=%s, title=%s, year=%s, director=%s%n", fid, title, yearStr, directorName);
+                        continue;
+                    }
+
+                    if (existingMovieIds.contains(fid)) {
+                        errorLog.printf("Duplicate movie ID - Skipped: %s%n", fid);
                         continue;
                     }
 
@@ -89,6 +104,7 @@ public class MainsParser {
                         year = Integer.parseInt(yearStr);
                         if (year < 1800 || year > 2100) throw new NumberFormatException();
                     } catch (NumberFormatException e) {
+                        errorLog.printf("Invalid year for movie '%s' (fid: %s): %s%n", title, fid, yearStr);
                         continue;
                     }
 
@@ -113,6 +129,7 @@ public class MainsParser {
                         for (int k = 0; k < catList.getLength(); k++) {
                             String rawGenre = catList.item(k).getTextContent();
                             if (!isValidGenre(rawGenre)) {
+                                errorLog.printf("Invalid genre '%s' for movie ID %s%n", rawGenre, fid);
                                 continue;
                             }
                             String genre = normalizeGenre(rawGenre);
@@ -147,17 +164,31 @@ public class MainsParser {
         }
     }
 
-    private String getTextValue(Element parent, String tag) {
+   /* private String getTextValue(Element parent, String tag) {
         NodeList list = parent.getElementsByTagName(tag);
         if (list.getLength() > 0) {
             Node node = list.item(0).getFirstChild();
             if (node != null) {
-                String value = node.getNodeValue();
-                return (value != null) ? value.trim() : null;
+                return node.getNodeValue().trim();
             }
         }
         return null;
     }
+    */
+   private String getTextValue(Element parent, String tag) {
+       NodeList list = parent.getElementsByTagName(tag);
+       if (list.getLength() > 0) {
+           Node node = list.item(0).getFirstChild();
+           if (node != null) {
+               String value = node.getNodeValue();
+               if (value != null) {
+                   return value.trim();
+               }
+           }
+       }
+       return null;
+   }
+
 
     private String normalizeGenre(String genre) {
         if (genre == null) return null;
@@ -169,7 +200,11 @@ public class MainsParser {
     private boolean isValidGenre(String genre) {
         if (genre == null || genre.trim().isEmpty()) return false;
         String g = genre.trim().toLowerCase();
-        return g.length() >= 2 && g.length() <= 20 && !g.matches(".*\\d.*") && !g.contains("xxx") && !g.contains("porn") && !g.matches(".*[;*<>].*");
+        return g.length() >= 2 && g.length() <= 20 &&
+                !g.matches(".*\\d.*") &&
+                !g.contains("xxx") &&
+                !g.contains("porn") &&
+                !g.matches(".*[;*<>].*");
     }
 
     public static void main(String[] args) {
