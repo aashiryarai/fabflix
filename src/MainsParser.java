@@ -24,14 +24,12 @@ public class MainsParser {
             System.out.println("Failed to open log file.");
             return;
         }
-
         loadExistingIds();
         parseXmlFile("stanford-movies/mains243.xml");
         parseDocument();
 
         errorLog.close();
     }
-
     private void loadExistingIds() {
         try (Statement stmt = connection.createStatement()) {
             ResultSet rs = stmt.executeQuery("SELECT id FROM movies");
@@ -90,15 +88,14 @@ public class MainsParser {
                             title == null || title.trim().isEmpty() ||
                             yearStr == null || yearStr.trim().isEmpty() ||
                             directorName == null || directorName.trim().isEmpty()) {
-                        errorLog.printf("Missing required field - Movie skipped: fid=%s, title=%s, year=%s, director=%s%n", fid, title, yearStr, directorName);
+                        errorLog.printf("Missing required field/Movie skipped: fid=%s, title=%s, year=%s, director=%s%n", fid, title, yearStr, directorName);
                         continue;
                     }
 
                     if (existingMovieIds.contains(fid)) {
-                        errorLog.printf("Duplicate movie ID - Skipped: %s%n", fid);
+                        errorLog.printf("Duplicate movie ID--> Skipped: %s%n", fid);
                         continue;
                     }
-
                     int year;
                     try {
                         year = Integer.parseInt(yearStr);
@@ -121,11 +118,9 @@ public class MainsParser {
                     insertRating.setDouble(2, Math.round(randomRating * 10.0) / 10.0);
                     insertRating.setInt(3, numVotes);
                     insertRating.addBatch();
-
                     Element cats = (Element) film.getElementsByTagName("cats").item(0);
                     if (cats != null) {
                         NodeList catList = cats.getElementsByTagName("cat");
-
                         for (int k = 0; k < catList.getLength(); k++) {
                             String rawGenre = catList.item(k).getTextContent();
                             if (!isValidGenre(rawGenre)) {
@@ -133,13 +128,11 @@ public class MainsParser {
                                 continue;
                             }
                             String genre = normalizeGenre(rawGenre);
-
                             if (!existingGenres.contains(genre)) {
                                 insertGenre.setString(1, genre);
                                 insertGenre.addBatch();
                                 existingGenres.add(genre);
                             }
-
                             insertGenreInMovie.setString(1, fid);
                             insertGenreInMovie.setString(2, genre);
                             insertGenreInMovie.addBatch();
@@ -147,13 +140,11 @@ public class MainsParser {
                     }
                 }
             }
-
             insertMovie.executeBatch();
             insertGenre.executeBatch();
             insertGenreInMovie.executeBatch();
             insertRating.executeBatch();
             connection.commit();
-
         } catch (SQLException e) {
             e.printStackTrace();
             try {
@@ -188,8 +179,6 @@ public class MainsParser {
        }
        return null;
    }
-
-
     private String normalizeGenre(String genre) {
         if (genre == null) return null;
         genre = genre.trim();
