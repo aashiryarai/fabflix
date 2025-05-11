@@ -57,6 +57,7 @@ public class AddStarServlet extends HttpServlet {
                 int rows = ps.executeUpdate();
                 System.out.println("DEBUG: Insert result = " + rows);
                 jsonObject.addProperty("message", "Star added successfully!");
+                jsonObject.addProperty("id", newId);
             }
         } catch (Exception e) {
             e.printStackTrace(); // show full stack trace in server log
