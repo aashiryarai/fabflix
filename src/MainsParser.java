@@ -24,12 +24,13 @@ public class MainsParser {
             System.out.println("Failed to open log file.");
             return;
         }
+
         loadExistingIds();
         parseXmlFile("stanford-movies/mains243.xml");
         parseDocument();
-
         errorLog.close();
     }
+
     private void loadExistingIds() {
         try (Statement stmt = connection.createStatement()) {
             ResultSet rs = stmt.executeQuery("SELECT id FROM movies");
@@ -60,18 +61,15 @@ public class MainsParser {
 
         try {
             connection.setAutoCommit(false);
+
             PreparedStatement insertMovie = connection.prepareStatement(
-                    "INSERT INTO movies (id, title, year, director) VALUES (?, ?, ?, ?)"
-            );
+                    "INSERT INTO movies (id, title, year, director) VALUES (?, ?, ?, ?)");
             PreparedStatement insertGenre = connection.prepareStatement(
-                    "INSERT INTO genres (name) VALUES (?)"
-            );
+                    "INSERT INTO genres (name) VALUES (?)");
             PreparedStatement insertGenreInMovie = connection.prepareStatement(
-                    "INSERT INTO genres_in_movies (genreId, movieId) SELECT g.id, ? FROM genres g WHERE g.name = ?"
-            );
+                    "INSERT INTO genres_in_movies (genreId, movieId) SELECT g.id, ? FROM genres g WHERE g.name = ?");
             PreparedStatement insertRating = connection.prepareStatement(
-                    "INSERT INTO ratings (movieId, rating, numVotes) VALUES (?, ?, ?)"
-            );
+                    "INSERT INTO ratings (movieId, rating, numVotes) VALUES (?, ?, ?)");
 
             for (int i = 0; i < directorFilmsList.getLength(); i++) {
                 Element directorFilms = (Element) directorFilmsList.item(i);
@@ -88,14 +86,15 @@ public class MainsParser {
                             title == null || title.trim().isEmpty() ||
                             yearStr == null || yearStr.trim().isEmpty() ||
                             directorName == null || directorName.trim().isEmpty()) {
-                        errorLog.printf("Missing required field/Movie skipped: fid=%s, title=%s, year=%s, director=%s%n", fid, title, yearStr, directorName);
+                        errorLog.printf("Missing field: fid=%s, title=%s, year=%s, director=%s%n", fid, title, yearStr, directorName);
                         continue;
                     }
 
                     if (existingMovieIds.contains(fid)) {
-                        errorLog.printf("Duplicate movie ID--> Skipped: %s%n", fid);
+                        errorLog.printf("Duplicate movie ID: %s%n", fid);
                         continue;
                     }
+
                     int year;
                     try {
                         year = Integer.parseInt(yearStr);
@@ -112,27 +111,33 @@ public class MainsParser {
                     insertMovie.addBatch();
                     existingMovieIds.add(fid);
 
+                    // Generate and insert random rating
                     double randomRating = 5.0 + (Math.random() * 4.9);
                     int numVotes = 100 + (int)(Math.random() * 900);
                     insertRating.setString(1, fid);
                     insertRating.setDouble(2, Math.round(randomRating * 10.0) / 10.0);
                     insertRating.setInt(3, numVotes);
                     insertRating.addBatch();
+
                     Element cats = (Element) film.getElementsByTagName("cats").item(0);
                     if (cats != null) {
                         NodeList catList = cats.getElementsByTagName("cat");
+
                         for (int k = 0; k < catList.getLength(); k++) {
                             String rawGenre = catList.item(k).getTextContent();
                             if (!isValidGenre(rawGenre)) {
                                 errorLog.printf("Invalid genre '%s' for movie ID %s%n", rawGenre, fid);
                                 continue;
                             }
+
                             String genre = normalizeGenre(rawGenre);
+
                             if (!existingGenres.contains(genre)) {
                                 insertGenre.setString(1, genre);
                                 insertGenre.addBatch();
                                 existingGenres.add(genre);
                             }
+
                             insertGenreInMovie.setString(1, fid);
                             insertGenreInMovie.setString(2, genre);
                             insertGenreInMovie.addBatch();
@@ -140,11 +145,13 @@ public class MainsParser {
                     }
                 }
             }
+
             insertMovie.executeBatch();
             insertGenre.executeBatch();
             insertGenreInMovie.executeBatch();
             insertRating.executeBatch();
             connection.commit();
+
         } catch (SQLException e) {
             e.printStackTrace();
             try {
@@ -155,30 +162,20 @@ public class MainsParser {
         }
     }
 
-   /* private String getTextValue(Element parent, String tag) {
+    private String getTextValue(Element parent, String tag) {
         NodeList list = parent.getElementsByTagName(tag);
         if (list.getLength() > 0) {
             Node node = list.item(0).getFirstChild();
             if (node != null) {
-                return node.getNodeValue().trim();
+                String value = node.getNodeValue();
+                if (value != null) {
+                    return value.trim();
+                }
             }
         }
         return null;
     }
-    */
-   private String getTextValue(Element parent, String tag) {
-       NodeList list = parent.getElementsByTagName(tag);
-       if (list.getLength() > 0) {
-           Node node = list.item(0).getFirstChild();
-           if (node != null) {
-               String value = node.getNodeValue();
-               if (value != null) {
-                   return value.trim();
-               }
-           }
-       }
-       return null;
-   }
+
     private String normalizeGenre(String genre) {
         if (genre == null) return null;
         genre = genre.trim();
