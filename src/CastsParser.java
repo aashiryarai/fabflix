@@ -81,7 +81,7 @@ public class CastsParser {
     private void parseDocument() {
         Element root = dom.getDocumentElement();
         NodeList directorList = root.getElementsByTagName("dirfilms");
-        int batchSize = 500;
+        int batchSize = 100;
         int castCounter = 0;
 
         try {

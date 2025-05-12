@@ -77,7 +77,7 @@ public class ActorsParser {
 
         int insertedCount = 0;
         int skippedCount = 0;
-        int batchSize = 500;
+        int batchSize = 100;
         int actorCounter = 0;
 
         try {
