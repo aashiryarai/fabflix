@@ -35,7 +35,6 @@ public class ActorsParser extends DefaultHandler {
             errorLog = new PrintWriter(new FileWriter("invalid_actors.txt", true));
             loadExistingStarNames();
             loadMaxStarId();
-
             connection.setAutoCommit(false);
             insertWithDob = connection.prepareStatement(
                     "INSERT INTO stars (id, name, birthYear) VALUES (?, ?, ?)");
@@ -45,13 +44,12 @@ public class ActorsParser extends DefaultHandler {
             SAXParserFactory spf = SAXParserFactory.newInstance();
             SAXParser sp = spf.newSAXParser();
             sp.parse(new File("stanford-movies/actors63.xml"), this);
-
-            // Final commit
             insertWithDob.executeBatch();
             insertWithoutDob.executeBatch();
             connection.commit();
 
             System.out.printf("Actors import: Inserted: %d | Skipped: %d%n", insertedCount, skippedCount);
+            //System.out.println("HERERRERE");
             errorLog.close();
         } catch (Exception e) {
             e.printStackTrace();
@@ -68,6 +66,8 @@ public class ActorsParser extends DefaultHandler {
              ResultSet rs = stmt.executeQuery("SELECT id, name FROM stars")) {
             while (rs.next()) {
                 existingStarNames.put(rs.getString("name").trim(), rs.getString("id"));
+                //System.out.println("HELLO")
+
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -82,6 +82,7 @@ public class ActorsParser extends DefaultHandler {
                 if (maxId != null) {
                     currentStarId = Integer.parseInt(maxId.replaceAll("\\D+", ""));
                 }
+                //System.out.println("HELLO")
             }
         } catch (SQLException e) {
             e.printStackTrace();
@@ -93,7 +94,6 @@ public class ActorsParser extends DefaultHandler {
         return String.format("nm%07d", currentStarId);
     }
 
-    // SAX callbacks
     public void startElement(String uri, String localName, String qName, Attributes attributes) {
         tempVal = "";
         if (qName.equalsIgnoreCase("actor")) {
@@ -105,12 +105,12 @@ public class ActorsParser extends DefaultHandler {
     public void characters(char[] ch, int start, int length) {
         tempVal += new String(ch, start, length);
     }
-
     public void endElement(String uri, String localName, String qName) {
         if (qName.equalsIgnoreCase("stagename")) {
             stageName = tempVal.trim();
         } else if (qName.equalsIgnoreCase("dob")) {
             dobStr = tempVal.trim();
+            //System.out.println("dobStr");
         } else if (qName.equalsIgnoreCase("actor")) {
             processActor();
         }
@@ -122,13 +122,11 @@ public class ActorsParser extends DefaultHandler {
             skippedCount++;
             return;
         }
-
         if (existingStarNames.containsKey(stageName)) {
             errorLog.printf("Skipped dup actor: %s%n", stageName);
             skippedCount++;
             return;
         }
-
         String newId = generateNextStarId();
 
         try {
@@ -144,7 +142,7 @@ public class ActorsParser extends DefaultHandler {
                 insertWithoutDob.addBatch();
             }
         } catch (NumberFormatException e) {
-            errorLog.printf("Invalid birthday for star '%s': '%s'. Inserted without DOB.%n", stageName, dobStr);
+            errorLog.printf("Invalid birthday for star '%s': '%s'. Inserted without dob.%n", stageName, dobStr);
             try {
                 insertWithoutDob.setString(1, newId);
                 insertWithoutDob.setString(2, stageName);
@@ -156,11 +154,9 @@ public class ActorsParser extends DefaultHandler {
             e.printStackTrace();
             return;
         }
-
         existingStarNames.put(stageName, newId);
         insertedCount++;
         actorCounter++;
-
         if (actorCounter % batchSize == 0) {
             try {
                 insertWithDob.executeBatch();
@@ -171,6 +167,7 @@ public class ActorsParser extends DefaultHandler {
             }
         }
     }
+
 
     public static void main(String[] args) {
         try {

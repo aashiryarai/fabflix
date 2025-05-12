@@ -8,16 +8,15 @@ import java.sql.*;
 import java.util.*;
 
 public class MainsParser extends DefaultHandler {
-
     private Connection connection;
     private PrintWriter errorLog;
     private Set<String> existingMovieIds = new HashSet<>();
     private Set<String> existingGenres = new HashSet<>();
-
     private String currentElement = "";
     private String currentDirector = null;
     private String currentMovieId = null;
     private String currentTitle = null;
+    //private String currentYear = null;
     private String currentYearStr = null;
     private List<String> currentGenres = new ArrayList<>();
 
@@ -29,22 +28,18 @@ public class MainsParser extends DefaultHandler {
     public MainsParser(Connection conn) {
         this.connection = conn;
     }
-
     public void run() {
         try {
             errorLog = new PrintWriter(new FileWriter("invalid_movies.txt", true));
             loadExistingIds();
-
             connection.setAutoCommit(false);
             insertMovie = connection.prepareStatement("INSERT INTO movies (id, title, year, director) VALUES (?, ?, ?, ?)");
             insertGenre = connection.prepareStatement("INSERT INTO genres (name) VALUES (?)");
             insertGenreInMovie = connection.prepareStatement("INSERT INTO genres_in_movies (genreId, movieId) SELECT g.id, ? FROM genres g WHERE g.name = ?");
             insertRating = connection.prepareStatement("INSERT INTO ratings (movieId, rating, numVotes) VALUES (?, ?, ?)");
-
             SAXParserFactory factory = SAXParserFactory.newInstance();
             SAXParser parser = factory.newSAXParser();
             parser.parse(new File("stanford-movies/mains243.xml"), this);
-
             insertMovie.executeBatch();
             insertGenre.executeBatch();
             insertGenreInMovie.executeBatch();
@@ -66,16 +61,13 @@ public class MainsParser extends DefaultHandler {
         try (Statement stmt = connection.createStatement()) {
             ResultSet rs = stmt.executeQuery("SELECT id FROM movies");
             while (rs.next()) existingMovieIds.add(rs.getString("id"));
-
+            //rs = stmt.executeQuery("SELECT name FROM genres WHERE");
             rs = stmt.executeQuery("SELECT name FROM genres");
             while (rs.next()) existingGenres.add(normalizeGenre(rs.getString("name")));
         } catch (SQLException e) {
             e.printStackTrace();
         }
     }
-
-    // SAX Handler Methods
-
     public void startElement(String uri, String localName, String qName, Attributes attributes) {
         currentElement = qName;
         if (qName.equalsIgnoreCase("film")) {
@@ -98,7 +90,6 @@ public class MainsParser extends DefaultHandler {
             case "cat": currentGenres.add(content); break;
         }
     }
-
     public void endElement(String uri, String localName, String qName) {
         if (qName.equalsIgnoreCase("film")) {
             processMovieEntry();
@@ -111,21 +102,19 @@ public class MainsParser extends DefaultHandler {
             errorLog.printf("Missing: fid=%s, title=%s, year=%s, director=%s%n", currentMovieId, currentTitle, currentYearStr, currentDirector);
             return;
         }
-
         if (existingMovieIds.contains(currentMovieId)) {
-            errorLog.printf("Duplicate movie ID: %s%n", currentMovieId);
+            errorLog.printf("Duplicate movieId: %s%n", currentMovieId);
             return;
         }
-
         int year;
         try {
             year = Integer.parseInt(currentYearStr);
-            if (year < 1800 || year > 2100) throw new NumberFormatException();
+            if (year < 1600 || year > 2100) throw new NumberFormatException();
         } catch (NumberFormatException e) {
-            errorLog.printf("Invalid year for movie '%s' (fid: %s): %s%n", currentTitle, currentMovieId, currentYearStr);
+            //System.out.println(e);
+            errorLog.printf("Invalid year'%s' (fid: %s): %s%n", currentTitle, currentMovieId, currentYearStr);
             return;
         }
-
         try {
             insertMovie.setString(1, currentMovieId);
             insertMovie.setString(2, currentTitle);
@@ -133,14 +122,13 @@ public class MainsParser extends DefaultHandler {
             insertMovie.setString(4, currentDirector);
             insertMovie.addBatch();
             existingMovieIds.add(currentMovieId);
-
+            //rand
             double randomRating = 5.0 + (Math.random() * 4.9);
             int numVotes = 100 + (int)(Math.random() * 900);
             insertRating.setString(1, currentMovieId);
             insertRating.setDouble(2, Math.round(randomRating * 10.0) / 10.0);
             insertRating.setInt(3, numVotes);
             insertRating.addBatch();
-
             for (String rawGenre : currentGenres) {
                 if (!isValidGenre(rawGenre)) {
                     errorLog.printf("Invalid genre '%s' for movie ID %s%n", rawGenre, currentMovieId);
@@ -156,7 +144,6 @@ public class MainsParser extends DefaultHandler {
                 insertGenreInMovie.setString(2, genre);
                 insertGenreInMovie.addBatch();
             }
-
         } catch (SQLException e) {
             e.printStackTrace();
         }
@@ -168,13 +155,13 @@ public class MainsParser extends DefaultHandler {
         if (genre.isEmpty()) return null;
         return genre.substring(0, 1).toUpperCase() + genre.substring(1).toLowerCase();
     }
-
     private boolean isValidGenre(String genre) {
         if (genre == null || genre.trim().isEmpty()) return false;
         String g = genre.trim().toLowerCase();
         return g.length() >= 2 && g.length() <= 20 &&
                 !g.matches(".*\\d.*") &&
                 !g.contains("xxx") &&
+                //!g.contains("xx")&&
                 !g.contains("porn") &&
                 !g.matches(".*[;*<>].*");
     }
@@ -182,7 +169,8 @@ public class MainsParser extends DefaultHandler {
     public static void main(String[] args) {
         try {
             Connection conn = DriverManager.getConnection(
-                    "jdbc:mysql://localhost:3306/moviedb", "mytestuser", "My6$Password");
+                    //"jdbc:mysql://localhost:3306/moviedb", "root", "Myssword");
+            "jdbc:mysql://localhost:3306/moviedb", "mytestuser", "My6$Password");
             new MainsParser(conn).run();
         } catch (SQLException e) {
             e.printStackTrace();
