@@ -80,6 +80,8 @@ public class ActorsParser {
 
         int insertedCount = 0;
         int skippedCount = 0;
+        int batchSize = 500;
+        int actorCounter = 0;
 
         try {
             connection.setAutoCommit(false);
@@ -130,12 +132,20 @@ public class ActorsParser {
                     existingStarNames.put(name, newId);
                     insertedCount++;
                 }
+
+                actorCounter++;
+                if (actorCounter % batchSize == 0) {
+                    insertWithDob.executeBatch();
+                    insertWithoutDob.executeBatch();
+                    connection.commit();
+                    System.out.printf("✔ Committed batch at actor %d%n", actorCounter);
+                }
             }
+
 
             insertWithDob.executeBatch();
             insertWithoutDob.executeBatch();
             connection.commit();
-
             System.out.printf("✅ Actors import complete. Inserted: %d | Skipped: %d%n", insertedCount, skippedCount);
         } catch (SQLException e) {
             System.out.println("❌ Batch insert failed. Rolling back.");

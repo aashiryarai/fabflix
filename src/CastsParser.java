@@ -82,6 +82,8 @@ public class CastsParser {
     private void parseDocument() {
         Element root = dom.getDocumentElement();
         NodeList directorList = root.getElementsByTagName("dirfilms");
+        int batchSize = 500;
+        int castCounter = 0;
 
         try {
             connection.setAutoCommit(false);
@@ -124,6 +126,13 @@ public class CastsParser {
                     insert.setString(2, fid);
                     insert.addBatch();
                     existingPairs.add(pairKey);
+
+                    castCounter++;
+                    if (castCounter % batchSize == 0) {
+                        insert.executeBatch();
+                        connection.commit();
+                        System.out.printf("✔ Committed batch at cast %d%n", castCounter);
+                    }
                 }
             }
 
