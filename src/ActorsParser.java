@@ -16,12 +16,11 @@ public class ActorsParser {
     public ActorsParser(Connection conn) {
         this.connection = conn;
     }
-
     public void run() {
         try {
             errorLog = new PrintWriter(new FileWriter("invalid_actors.txt", true));
         } catch (IOException e) {
-            System.out.println("Could not open invalid_actors.txt for writing.");
+            System.out.println("Could not open invalid_actors.txt");
             return;
         }
 
@@ -42,7 +41,6 @@ public class ActorsParser {
             e.printStackTrace();
         }
     }
-
     private void loadMaxStarId() {
         try (Statement stmt = connection.createStatement();
              ResultSet rs = stmt.executeQuery("SELECT MAX(id) FROM stars WHERE id LIKE 'nm%'")) {
@@ -73,7 +71,6 @@ public class ActorsParser {
             e.printStackTrace();
         }
     }
-
     private void parseDocument() {
         Element root = dom.getDocumentElement();
         NodeList actorList = root.getElementsByTagName("actor");
@@ -103,7 +100,7 @@ public class ActorsParser {
 
                 name = name.trim();
                 if (existingStarNames.containsKey(name)) {
-                    errorLog.printf("Skipped duplicate actor: %s%n", name);
+                    errorLog.printf("Skipped dup actor: %s%n", name);
                     skippedCount++;
                     continue;
                 }
@@ -125,7 +122,7 @@ public class ActorsParser {
                     existingStarNames.put(name, newId);
                     insertedCount++;
                 } catch (NumberFormatException e) {
-                    errorLog.printf("Invalid DOB for star '%s': '%s'. Inserted without DOB.%n", name, dobStr);
+                    errorLog.printf("Invalid birthday for star '%s': '%s'. Inserted without DOB.%n", name, dobStr);
                     insertWithoutDob.setString(1, newId);
                     insertWithoutDob.setString(2, name);
                     insertWithoutDob.addBatch();
@@ -138,17 +135,15 @@ public class ActorsParser {
                     insertWithDob.executeBatch();
                     insertWithoutDob.executeBatch();
                     connection.commit();
-                    System.out.printf("✔ Committed batch at actor %d%n", actorCounter);
+                    //System.out.printf("Committed batch at actor %d%n", actorCounter);
                 }
             }
-
-
             insertWithDob.executeBatch();
             insertWithoutDob.executeBatch();
             connection.commit();
-            System.out.printf("✅ Actors import complete. Inserted: %d | Skipped: %d%n", insertedCount, skippedCount);
+            System.out.printf("Actors import: Inserted: %d | Skipped: %d%n", insertedCount, skippedCount);
         } catch (SQLException e) {
-            System.out.println("❌ Batch insert failed. Rolling back.");
+            System.out.println("Batch insert failed");
             e.printStackTrace();
             try {
                 connection.rollback();
@@ -171,7 +166,6 @@ public class ActorsParser {
         }
         return null;
     }
-
     public static void main(String[] args) {
         try {
             Connection conn = DriverManager.getConnection(

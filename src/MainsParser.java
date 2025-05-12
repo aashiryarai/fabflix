@@ -16,7 +16,6 @@ public class MainsParser {
     public MainsParser(Connection conn) {
         this.connection = conn;
     }
-
     public void run() {
         try {
             errorLog = new PrintWriter(new FileWriter("invalid_movies.txt", true));
@@ -61,7 +60,6 @@ public class MainsParser {
 
         try {
             connection.setAutoCommit(false);
-
             PreparedStatement insertMovie = connection.prepareStatement(
                     "INSERT INTO movies (id, title, year, director) VALUES (?, ?, ?, ?)");
             PreparedStatement insertGenre = connection.prepareStatement(
@@ -81,12 +79,8 @@ public class MainsParser {
                     String fid = getTextValue(film, "fid");
                     String title = getTextValue(film, "t");
                     String yearStr = getTextValue(film, "year");
-
-                    if (fid == null || fid.trim().isEmpty() ||
-                            title == null || title.trim().isEmpty() ||
-                            yearStr == null || yearStr.trim().isEmpty() ||
-                            directorName == null || directorName.trim().isEmpty()) {
-                        errorLog.printf("Missing field: fid=%s, title=%s, year=%s, director=%s%n", fid, title, yearStr, directorName);
+                    if (fid == null || fid.trim().isEmpty() || title == null || title.trim().isEmpty() || yearStr == null || yearStr.trim().isEmpty() || directorName == null || directorName.trim().isEmpty()) {
+                        errorLog.printf("Missing: fid=%s, title=%s, year=%s, director=%s%n", fid, title, yearStr, directorName);
                         continue;
                     }
 
@@ -111,7 +105,6 @@ public class MainsParser {
                     insertMovie.addBatch();
                     existingMovieIds.add(fid);
 
-                    // Generate and insert random rating
                     double randomRating = 5.0 + (Math.random() * 4.9);
                     int numVotes = 100 + (int)(Math.random() * 900);
                     insertRating.setString(1, fid);
@@ -126,10 +119,9 @@ public class MainsParser {
                         for (int k = 0; k < catList.getLength(); k++) {
                             String rawGenre = catList.item(k).getTextContent();
                             if (!isValidGenre(rawGenre)) {
-                                errorLog.printf("Invalid genre '%s' for movie ID %s%n", rawGenre, fid);
+                                errorLog.printf("Invald genre '%s' for movie ID %s%n", rawGenre, fid);
                                 continue;
                             }
-
                             String genre = normalizeGenre(rawGenre);
 
                             if (!existingGenres.contains(genre)) {
@@ -137,7 +129,6 @@ public class MainsParser {
                                 insertGenre.addBatch();
                                 existingGenres.add(genre);
                             }
-
                             insertGenreInMovie.setString(1, fid);
                             insertGenreInMovie.setString(2, genre);
                             insertGenreInMovie.addBatch();
@@ -145,7 +136,6 @@ public class MainsParser {
                     }
                 }
             }
-
             insertMovie.executeBatch();
             insertGenre.executeBatch();
             insertGenreInMovie.executeBatch();
@@ -182,7 +172,6 @@ public class MainsParser {
         if (genre.isEmpty()) return null;
         return genre.substring(0, 1).toUpperCase() + genre.substring(1).toLowerCase();
     }
-
     private boolean isValidGenre(String genre) {
         if (genre == null || genre.trim().isEmpty()) return false;
         String g = genre.trim().toLowerCase();

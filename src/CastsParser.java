@@ -22,10 +22,9 @@ public class CastsParser {
         try {
             errorLog = new PrintWriter(new FileWriter("invalid_casts.txt", true));
         } catch (IOException e) {
-            System.err.println("Could not open invalid_casts.txt for logging.");
+            System.err.println("Failed to open invalid_casts.txt");
             return;
         }
-
         loadExistingRelations();
         loadStarsIntoMap();
         loadValidMovieIds();
@@ -45,6 +44,8 @@ public class CastsParser {
         }
     }
 
+
+
     private void loadStarsIntoMap() {
         try (Statement stmt = connection.createStatement();
              ResultSet rs = stmt.executeQuery("SELECT id, name FROM stars")) {
@@ -55,7 +56,6 @@ public class CastsParser {
             e.printStackTrace();
         }
     }
-
     private void loadValidMovieIds() {
         try (Statement stmt = connection.createStatement();
              ResultSet rs = stmt.executeQuery("SELECT id FROM movies")) {
@@ -66,7 +66,6 @@ public class CastsParser {
             e.printStackTrace();
         }
     }
-
     private void parseXmlFile(String filePath) {
         try {
             DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
@@ -103,35 +102,30 @@ public class CastsParser {
                         errorLog.printf("Missing fields: [fid: %s, actor: %s]%n", fid, actorName);
                         continue;
                     }
-
                     if (!validMovieIds.contains(fid)) {
                         errorLog.printf("Invalid movie ID: %s for actor: %s%n", fid, actorName);
                         continue;
                     }
-
                     String trimmedName = actorName.trim();
                     String starId = starNameToId.get(trimmedName);
                     if (starId == null) {
                         errorLog.printf("Star not found for name: %s (fid: %s)%n", trimmedName, fid);
                         continue;
                     }
-
                     String pairKey = starId + "|" + fid;
                     if (existingPairs.contains(pairKey)) {
                         errorLog.printf("Duplicate pair skipped: (%s, %s)%n", starId, fid);
                         continue;
                     }
-
                     insert.setString(1, starId);
                     insert.setString(2, fid);
                     insert.addBatch();
                     existingPairs.add(pairKey);
-
                     castCounter++;
                     if (castCounter % batchSize == 0) {
                         insert.executeBatch();
                         connection.commit();
-                        System.out.printf("✔ Committed batch at cast %d%n", castCounter);
+                        //System.out.printf("Committed batch at cast %d%n", castCounter);
                     }
                 }
             }
@@ -139,7 +133,7 @@ public class CastsParser {
             insert.executeBatch();
             connection.commit();
         } catch (SQLException e) {
-            System.err.println("Batch insert failed. Rolling back.");
+            System.err.println("Batch insert failed");
             e.printStackTrace();
             try {
                 connection.rollback();
