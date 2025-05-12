@@ -1,34 +1,66 @@
-import org.w3c.dom.*;
-import javax.xml.parsers.*;
+import org.xml.sax.*;
+import org.xml.sax.helpers.DefaultHandler;
+
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
 import java.io.*;
 import java.sql.*;
 import java.util.*;
-import org.xml.sax.InputSource;
 
-public class ActorsParser {
+public class ActorsParser extends DefaultHandler {
 
-    private Document dom;
     private Connection connection;
     private Map<String, String> existingStarNames = new HashMap<>();
     private int currentStarId = 0;
     private PrintWriter errorLog;
+    private String tempVal;
+
+    private String stageName;
+    private String dobStr;
+
+    private PreparedStatement insertWithDob;
+    private PreparedStatement insertWithoutDob;
+
+    private int insertedCount = 0;
+    private int skippedCount = 0;
+    private int batchSize = 100;
+    private int actorCounter = 0;
 
     public ActorsParser(Connection conn) {
         this.connection = conn;
     }
+
     public void run() {
         try {
             errorLog = new PrintWriter(new FileWriter("invalid_actors.txt", true));
-        } catch (IOException e) {
-            System.out.println("Could not open invalid_actors.txt");
-            return;
-        }
+            loadExistingStarNames();
+            loadMaxStarId();
 
-        loadExistingStarNames();
-        loadMaxStarId();
-        parseXmlFile("stanford-movies/actors63.xml");
-        parseDocument();
-        errorLog.close();
+            connection.setAutoCommit(false);
+            insertWithDob = connection.prepareStatement(
+                    "INSERT INTO stars (id, name, birthYear) VALUES (?, ?, ?)");
+            insertWithoutDob = connection.prepareStatement(
+                    "INSERT INTO stars (id, name) VALUES (?, ?)");
+
+            SAXParserFactory spf = SAXParserFactory.newInstance();
+            SAXParser sp = spf.newSAXParser();
+            sp.parse(new File("stanford-movies/actors63.xml"), this);
+
+            // Final commit
+            insertWithDob.executeBatch();
+            insertWithoutDob.executeBatch();
+            connection.commit();
+
+            System.out.printf("Actors import: Inserted: %d | Skipped: %d%n", insertedCount, skippedCount);
+            errorLog.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+            try {
+                connection.rollback();
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
+        }
     }
 
     private void loadExistingStarNames() {
@@ -41,6 +73,7 @@ public class ActorsParser {
             e.printStackTrace();
         }
     }
+
     private void loadMaxStarId() {
         try (Statement stmt = connection.createStatement();
              ResultSet rs = stmt.executeQuery("SELECT MAX(id) FROM stars WHERE id LIKE 'nm%'")) {
@@ -60,112 +93,85 @@ public class ActorsParser {
         return String.format("nm%07d", currentStarId);
     }
 
-    private void parseXmlFile(String filePath) {
-        try {
-            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-            DocumentBuilder db = dbf.newDocumentBuilder();
-            InputSource is = new InputSource(new FileInputStream(filePath));
-            is.setEncoding("ISO-8859-1");
-            dom = db.parse(is);
-        } catch (Exception e) {
-            e.printStackTrace();
+    // SAX callbacks
+    public void startElement(String uri, String localName, String qName, Attributes attributes) {
+        tempVal = "";
+        if (qName.equalsIgnoreCase("actor")) {
+            stageName = null;
+            dobStr = null;
         }
     }
-    private void parseDocument() {
-        Element root = dom.getDocumentElement();
-        NodeList actorList = root.getElementsByTagName("actor");
 
-        int insertedCount = 0;
-        int skippedCount = 0;
-        int batchSize = 100;
-        int actorCounter = 0;
+    public void characters(char[] ch, int start, int length) {
+        tempVal += new String(ch, start, length);
+    }
+
+    public void endElement(String uri, String localName, String qName) {
+        if (qName.equalsIgnoreCase("stagename")) {
+            stageName = tempVal.trim();
+        } else if (qName.equalsIgnoreCase("dob")) {
+            dobStr = tempVal.trim();
+        } else if (qName.equalsIgnoreCase("actor")) {
+            processActor();
+        }
+    }
+
+    private void processActor() {
+        if (stageName == null || stageName.isEmpty()) {
+            errorLog.println("Skipped actor: Missing name");
+            skippedCount++;
+            return;
+        }
+
+        if (existingStarNames.containsKey(stageName)) {
+            errorLog.printf("Skipped dup actor: %s%n", stageName);
+            skippedCount++;
+            return;
+        }
+
+        String newId = generateNextStarId();
 
         try {
-            connection.setAutoCommit(false);
-            PreparedStatement insertWithDob = connection.prepareStatement(
-                    "INSERT INTO stars (id, name, birthYear) VALUES (?, ?, ?)");
-            PreparedStatement insertWithoutDob = connection.prepareStatement(
-                    "INSERT INTO stars (id, name) VALUES (?, ?)");
-
-            for (int i = 0; i < actorList.getLength(); i++) {
-                Element actor = (Element) actorList.item(i);
-                String name = getTextValue(actor, "stagename");
-                String dobStr = getTextValue(actor, "dob");
-
-                if (name == null || name.trim().isEmpty()) {
-                    errorLog.printf("Skipped actor at index %d: Missing name%n", i);
-                    skippedCount++;
-                    continue;
-                }
-
-                name = name.trim();
-                if (existingStarNames.containsKey(name)) {
-                    errorLog.printf("Skipped dup actor: %s%n", name);
-                    skippedCount++;
-                    continue;
-                }
-
-                String newId = generateNextStarId();
-
-                try {
-                    if (dobStr != null && !dobStr.trim().isEmpty()) {
-                        int birthYear = Integer.parseInt(dobStr.trim());
-                        insertWithDob.setString(1, newId);
-                        insertWithDob.setString(2, name);
-                        insertWithDob.setInt(3, birthYear);
-                        insertWithDob.addBatch();
-                    } else {
-                        insertWithoutDob.setString(1, newId);
-                        insertWithoutDob.setString(2, name);
-                        insertWithoutDob.addBatch();
-                    }
-                    existingStarNames.put(name, newId);
-                    insertedCount++;
-                } catch (NumberFormatException e) {
-                    errorLog.printf("Invalid birthday for star '%s': '%s'. Inserted without DOB.%n", name, dobStr);
-                    insertWithoutDob.setString(1, newId);
-                    insertWithoutDob.setString(2, name);
-                    insertWithoutDob.addBatch();
-                    existingStarNames.put(name, newId);
-                    insertedCount++;
-                }
-
-                actorCounter++;
-                if (actorCounter % batchSize == 0) {
-                    insertWithDob.executeBatch();
-                    insertWithoutDob.executeBatch();
-                    connection.commit();
-                    //System.out.printf("Committed batch at actor %d%n", actorCounter);
-                }
+            if (dobStr != null && !dobStr.isEmpty()) {
+                int birthYear = Integer.parseInt(dobStr);
+                insertWithDob.setString(1, newId);
+                insertWithDob.setString(2, stageName);
+                insertWithDob.setInt(3, birthYear);
+                insertWithDob.addBatch();
+            } else {
+                insertWithoutDob.setString(1, newId);
+                insertWithoutDob.setString(2, stageName);
+                insertWithoutDob.addBatch();
             }
-            insertWithDob.executeBatch();
-            insertWithoutDob.executeBatch();
-            connection.commit();
-            System.out.printf("Actors import: Inserted: %d | Skipped: %d%n", insertedCount, skippedCount);
-        } catch (SQLException e) {
-            System.out.println("Batch insert failed");
-            e.printStackTrace();
+        } catch (NumberFormatException e) {
+            errorLog.printf("Invalid birthday for star '%s': '%s'. Inserted without DOB.%n", stageName, dobStr);
             try {
-                connection.rollback();
-            } catch (SQLException rollbackEx) {
-                rollbackEx.printStackTrace();
+                insertWithoutDob.setString(1, newId);
+                insertWithoutDob.setString(2, stageName);
+                insertWithoutDob.addBatch();
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            return;
+        }
+
+        existingStarNames.put(stageName, newId);
+        insertedCount++;
+        actorCounter++;
+
+        if (actorCounter % batchSize == 0) {
+            try {
+                insertWithDob.executeBatch();
+                insertWithoutDob.executeBatch();
+                connection.commit();
+            } catch (SQLException e) {
+                e.printStackTrace();
             }
         }
     }
 
-    private String getTextValue(Element parent, String tag) {
-        NodeList list = parent.getElementsByTagName(tag);
-        if (list.getLength() > 0) {
-            Node node = list.item(0).getFirstChild();
-            if (node != null) {
-                String value = node.getNodeValue();
-                if (value != null) {
-                    return value.trim();
-                }
-            }
-        }
-        return null;
-    }
     public static void main(String[] args) {
         try {
             Connection conn = DriverManager.getConnection(

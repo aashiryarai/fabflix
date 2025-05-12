@@ -1,36 +1,60 @@
-import org.w3c.dom.*;
-import javax.xml.parsers.*;
+import org.xml.sax.*;
+import org.xml.sax.helpers.DefaultHandler;
+
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
 import java.io.*;
 import java.sql.*;
 import java.util.*;
-import org.xml.sax.InputSource;
 
-public class CastsParser {
+public class CastsParser extends DefaultHandler {
 
-    private Document dom;
     private Connection connection;
     private Set<String> existingPairs = new HashSet<>();
     private Map<String, String> starNameToId = new HashMap<>();
     private Set<String> validMovieIds = new HashSet<>();
     private PrintWriter errorLog;
 
-    public CastsParser(Connection conn) {
-        this.connection = conn;
+    private String currentElement = "";
+    private String currentMovieId = null;
+    private String currentActorName = null;
+
+    private PreparedStatement insertStatement;
+    private int castCounter = 0;
+    private final int batchSize = 100;
+
+    public CastsParser(Connection connection) {
+        this.connection = connection;
     }
 
     public void run() {
         try {
             errorLog = new PrintWriter(new FileWriter("invalid_casts.txt", true));
-        } catch (IOException e) {
-            System.err.println("Failed to open invalid_casts.txt");
-            return;
+            loadExistingRelations();
+            loadStarsIntoMap();
+            loadValidMovieIds();
+
+            connection.setAutoCommit(false);
+            insertStatement = connection.prepareStatement(
+                    "INSERT INTO stars_in_movies (starId, movieId) VALUES (?, ?)");
+
+            SAXParserFactory spf = SAXParserFactory.newInstance();
+            SAXParser sp = spf.newSAXParser();
+            sp.parse(new File("stanford-movies/casts124.xml"), this);
+
+            insertStatement.executeBatch();
+            connection.commit();
+            errorLog.close();
+
+            System.out.printf("Finished inserting %d valid star-movie pairs.%n", castCounter);
+        } catch (Exception e) {
+            e.printStackTrace();
+            try {
+                connection.rollback();
+            } catch (SQLException rollbackEx) {
+                rollbackEx.printStackTrace();
+            }
         }
-        loadExistingRelations();
-        loadStarsIntoMap();
-        loadValidMovieIds();
-        parseXmlFile("stanford-movies/casts124.xml");
-        parseDocument();
-        errorLog.close();
     }
 
     private void loadExistingRelations() {
@@ -44,8 +68,6 @@ public class CastsParser {
         }
     }
 
-
-
     private void loadStarsIntoMap() {
         try (Statement stmt = connection.createStatement();
              ResultSet rs = stmt.executeQuery("SELECT id, name FROM stars")) {
@@ -56,6 +78,7 @@ public class CastsParser {
             e.printStackTrace();
         }
     }
+
     private void loadValidMovieIds() {
         try (Statement stmt = connection.createStatement();
              ResultSet rs = stmt.executeQuery("SELECT id FROM movies")) {
@@ -66,92 +89,83 @@ public class CastsParser {
             e.printStackTrace();
         }
     }
-    private void parseXmlFile(String filePath) {
-        try {
-            DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
-            DocumentBuilder db = dbf.newDocumentBuilder();
-            InputSource is = new InputSource(new FileInputStream(filePath));
-            is.setEncoding("ISO-8859-1");
-            dom = db.parse(is);
-        } catch (Exception e) {
-            e.printStackTrace();
+
+    // SAX Event Handlers
+
+    @Override
+    public void startElement(String uri, String localName, String qName, Attributes attributes) {
+        currentElement = qName;
+        if (qName.equalsIgnoreCase("m")) {
+            currentMovieId = null;
+            currentActorName = null;
         }
     }
 
-    private void parseDocument() {
-        Element root = dom.getDocumentElement();
-        NodeList directorList = root.getElementsByTagName("dirfilms");
-        int batchSize = 100;
-        int castCounter = 0;
+    @Override
+    public void characters(char[] ch, int start, int length) {
+        String content = new String(ch, start, length).trim();
+        if (content.isEmpty()) return;
+
+        switch (currentElement) {
+            case "f":
+                currentMovieId = content;
+                break;
+            case "a":
+                currentActorName = content;
+                break;
+        }
+    }
+
+    @Override
+    public void endElement(String uri, String localName, String qName) {
+        if (qName.equalsIgnoreCase("m")) {
+            processCastEntry();
+        }
+        currentElement = "";
+    }
+
+    private void processCastEntry() {
+        if (currentMovieId == null || currentActorName == null || currentActorName.trim().isEmpty()) {
+            errorLog.printf("Missing fields: [fid: %s, actor: %s]%n", currentMovieId, currentActorName);
+            return;
+        }
+
+        if (!validMovieIds.contains(currentMovieId)) {
+            errorLog.printf("Invalid movie ID: %s for actor: %s%n", currentMovieId, currentActorName);
+            return;
+        }
+
+        String trimmedName = currentActorName.trim();
+        String starId = starNameToId.get(trimmedName);
+
+        if (starId == null) {
+            errorLog.printf("Star not found for name: %s (fid: %s)%n", trimmedName, currentMovieId);
+            return;
+        }
+
+        String pairKey = starId + "|" + currentMovieId;
+        if (existingPairs.contains(pairKey)) {
+            errorLog.printf("Duplicate pair skipped: (%s, %s)%n", starId, currentMovieId);
+            return;
+        }
 
         try {
-            connection.setAutoCommit(false);
-            PreparedStatement insert = connection.prepareStatement(
-                    "INSERT INTO stars_in_movies (starId, movieId) VALUES (?, ?)");
+            insertStatement.setString(1, starId);
+            insertStatement.setString(2, currentMovieId);
+            insertStatement.addBatch();
+            existingPairs.add(pairKey);
+            castCounter++;
 
-            for (int i = 0; i < directorList.getLength(); i++) {
-                Element dirfilms = (Element) directorList.item(i);
-                NodeList castEntries = dirfilms.getElementsByTagName("m");
-
-                for (int j = 0; j < castEntries.getLength(); j++) {
-                    Element castEntry = (Element) castEntries.item(j);
-                    String fid = getTextValue(castEntry, "f");
-                    String actorName = getTextValue(castEntry, "a");
-
-                    if (fid == null || actorName == null || actorName.trim().isEmpty()) {
-                        errorLog.printf("Missing fields: [fid: %s, actor: %s]%n", fid, actorName);
-                        continue;
-                    }
-                    if (!validMovieIds.contains(fid)) {
-                        errorLog.printf("Invalid movie ID: %s for actor: %s%n", fid, actorName);
-                        continue;
-                    }
-                    String trimmedName = actorName.trim();
-                    String starId = starNameToId.get(trimmedName);
-                    if (starId == null) {
-                        errorLog.printf("Star not found for name: %s (fid: %s)%n", trimmedName, fid);
-                        continue;
-                    }
-                    String pairKey = starId + "|" + fid;
-                    if (existingPairs.contains(pairKey)) {
-                        errorLog.printf("Duplicate pair skipped: (%s, %s)%n", starId, fid);
-                        continue;
-                    }
-                    insert.setString(1, starId);
-                    insert.setString(2, fid);
-                    insert.addBatch();
-                    existingPairs.add(pairKey);
-                    castCounter++;
-                    if (castCounter % batchSize == 0) {
-                        insert.executeBatch();
-                        connection.commit();
-                        //System.out.printf("Committed batch at cast %d%n", castCounter);
-                    }
-                }
+            if (castCounter % batchSize == 0) {
+                insertStatement.executeBatch();
+                connection.commit();
             }
-
-            insert.executeBatch();
-            connection.commit();
         } catch (SQLException e) {
-            System.err.println("Batch insert failed");
             e.printStackTrace();
-            try {
-                connection.rollback();
-            } catch (SQLException rollbackEx) {
-                rollbackEx.printStackTrace();
-            }
         }
     }
 
-    private String getTextValue(Element parent, String tag) {
-        NodeList list = parent.getElementsByTagName(tag);
-        if (list.getLength() > 0 && list.item(0).getFirstChild() != null) {
-            String value = list.item(0).getFirstChild().getNodeValue();
-            return value != null ? value.trim() : null;
-        }
-        return null;
-    }
-
+    // Entry point
     public static void main(String[] args) {
         try {
             Connection conn = DriverManager.getConnection(
