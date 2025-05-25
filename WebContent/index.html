@@ -17,6 +17,40 @@
             font-weight: normal;
         }
     </style>
+    <style>
+        .autocomplete-suggestions {
+            background-color: white;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-family: Verdana, sans-serif;
+            font-size: 14px;
+            max-height: 250px;
+            overflow-y: auto;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+            z-index: 9999;
+        }
+
+
+        .autocomplete-suggestion {
+            padding: 8px 12px;
+            cursor: pointer;
+            color: #333;
+        }
+
+
+        .autocomplete-selected {
+            background-color: #007bff;
+            color: white;
+        }
+
+
+        .autocomplete-suggestion b {
+            font-weight: bold;
+            color: #007bff;
+        }
+    </style>
+
+
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
@@ -24,33 +58,28 @@
     <title>Movie List</title>
 </head>
 
-<script>
-    $.ajax({
-        url: "api/index",
-        method: "GET",
-        success: function(data) {
-            console.log("User logged in:", data);
-        },
-        error: function() {
-            window.location.replace("login.html");
-        }
-    });
-</script>
+
+
 
 <body style="background-color:lightsteelblue;">
 <div style="display:flex; justify-content:space-between; align-items:center; padding:8px;">
     <span id="user-info">Loading user…</span>
 
+
     <button id="checkout-button">Checkout</button>
     <button id="logout-button">Logout</button>
 
+
 </div>
+
 
 <div id="genre-links" class="mb-3"></div>
 <div id="title-links" class="mb-3 d-flex flex-wrap justify-content-center"></div>
 
+
 <div style="width:90%; margin: 0 auto; font-family: verdana;">
     <h1 style="font-size: 50px; padding-top:20px; padding-bottom:20px;">Movies</h1>
+
 
     <form id="search-form" class="mb-4">
         <input type="text" id="title" placeholder="Title">
@@ -60,7 +89,12 @@
         <button type="submit">Search</button>
     </form>
 
-    <!-- 🔥 Added Sorting and Page Size Controls -->
+
+    <small id="search-type-label" class="text-muted"></small>
+
+
+
+
     <div class="mb-4 d-flex justify-content-center flex-wrap align-items-center">
         <label for="sort-by" class="mr-2">Sort by:</label>
         <select id="sort-by" class="form-control mx-2" style="width:auto;">
@@ -68,11 +102,13 @@
             <option value="rating">Rating</option>
         </select>
 
+
         <label for="sort-order" class="ml-4 mr-2">Order:</label>
         <select id="sort-order" class="form-control mx-2" style="width:auto;">
             <option value="asc">Ascending</option>
             <option value="desc">Descending</option>
         </select>
+
 
         <label for="page-size" class="ml-4 mr-2">Movies per page:</label>
         <select id="page-size" class="form-control mx-2" style="width:auto;">
@@ -82,6 +118,7 @@
             <option value="100">100</option>
         </select>
     </div>
+
 
     <div style="display: flex; justify-content: center; overflow-x: auto;">
         <table id="star_table" class="table table-striped" style="text-align: center; width: auto; border: 1px solid white;">
@@ -99,18 +136,20 @@
         </table>
     </div>
 
+
     <!--  Pagination Controls -->
     <div class="d-flex justify-content-center mt-4">
         <button id="prev-button" class="btn btn-secondary mx-2">Previous</button>
         <button id="next-button" class="btn btn-secondary mx-2">Next</button>
     </div>
 
+
 </div>
 
-<!-- Scripts -->
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+
+
+
+
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
@@ -128,8 +167,10 @@
             })
             .catch(err => console.error("Genre fetch failed:", err));
 
+
         const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ*".split('');
         const titleContainer = document.getElementById("title-links");
+
 
         alphabet.forEach(letter => {
             const link = document.createElement("a");
@@ -141,7 +182,18 @@
     });
 </script>
 
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.devbridge-autocomplete/1.4.11/jquery.autocomplete.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+
+
 <script src="index.js"></script>
+
 
 </body>
 </html>
+
+
