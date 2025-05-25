@@ -11,16 +11,26 @@ function saveSessionState() {
     sessionStorage.setItem("sortBy", sortBy);
     sessionStorage.setItem("sortOrder", sortOrder);
     sessionStorage.setItem("currentParams", JSON.stringify(currentParams));
+    //curr sess page
+    sessionStorage.setItem("origin_page", window.location.pathname);
 }
 
 
 function loadSessionState() {
-    if (sessionStorage.getItem("currentPage")) {
+    const isReturnFromSingleMovie = sessionStorage.getItem("origin_page") === "single-movie.html";
+    if (sessionStorage.getItem("currentPage") && !isReturnFromSingleMovie) {
         currentPage = parseInt(sessionStorage.getItem("currentPage"));
         pageSize = parseInt(sessionStorage.getItem("pageSize"));
         sortBy = sessionStorage.getItem("sortBy");
         sortOrder = sessionStorage.getItem("sortOrder");
         currentParams = JSON.parse(sessionStorage.getItem("currentParams"));
+    } else {
+        // Clear session state when coming back from the Single Movie page
+        sessionStorage.removeItem("currentPage");
+        sessionStorage.removeItem("pageSize");
+        sessionStorage.removeItem("sortBy");
+        sessionStorage.removeItem("sortOrder");
+        sessionStorage.removeItem("currentParams");
     }
 }
 
@@ -29,7 +39,6 @@ function handleMovieResult(resultData) {
     console.log("handleMovieResult", resultData);
     const movieTableBodyElement = $("#star_table_body");
     movieTableBodyElement.empty();
-
 
     for (let i = 0; i < resultData.length; i++) {
         let rowHTML = `
@@ -52,15 +61,12 @@ function handleMovieResult(resultData) {
         movieTableBodyElement.append(rowHTML);
     }
 
-
     $("#prev-button").prop("disabled", currentPage === 1);
 }
-
 
 $(document).on('click', '.add-to-cart', function () {
     const movieId = $(this).data("id");
     const title = $(this).data("title");
-
 
     $.ajax({
         url: "api/cart",
@@ -75,7 +81,6 @@ $(document).on('click', '.add-to-cart', function () {
     });
 });
 
-
 function fetchMovies() {
     const params = {
         ...currentParams,
@@ -85,16 +90,18 @@ function fetchMovies() {
         pageSize
     };
 
-
     saveSessionState();
 
-
+  /*  if (params.searchType === "fulltext") {
+        $("#search-type-label").text("Full-Text Search");
+    } else {
+        $("#search-type-label").text("");
+    }*/
     if (params.searchType === "fulltext") {
-        $("#search-type-label").text("Using Full-Text Prefix Search");
+        $("#search-type-label").text("Full-Text Search");
     } else {
         $("#search-type-label").text("");
     }
-
 
     $.ajax({
         url: "api/movies",
@@ -112,41 +119,30 @@ function fetchMovies() {
 function performSearch(event) {
     event.preventDefault();
 
-
     const title = $("#title").val().trim();
     const year = $("#year").val().trim();
     const director = $("#director").val().trim();
     const star = $("#star").val().trim();
-
-
-    currentParams = {
-        title,
-        year,
-        director,
-        star
-    };
-
 
     if (!title && !year && !director && !star) {
         alert("Please provide at least one search field.");
         return;
     }
 
+    currentParams = { title, year, director, star };
 
-    // Enable fulltext search only when ONLY title is provided
     if (title && !year && !director && !star) {
         currentParams.searchType = "fulltext";
     } else {
         delete currentParams.searchType;
     }
 
-
     currentPage = 1;
     sessionStorage.setItem("origin_page", "index.html");
 
-
     fetchMovies();
 }
+
 
 
 function goToSingleMovie(movieId) {
@@ -203,17 +199,13 @@ $.ajax({
     }
 });
 
-
 $("#logout-button").click(() => window.location.replace("logout"));
-
 
 $("#checkout-button").click(() => window.location.href = "shopping-cart.html");
 
-
 $("#search-form").submit(performSearch);
 
-
-// === AUTOCOMPLETE LOGIC ===
+//autocomplete starting here
 $(document).ready(function() {
     loadSessionState();
 
@@ -249,9 +241,11 @@ $(document).ready(function() {
         lookup: function (query, doneCallback) {
             console.log("Autocomplete search initiated for query:", query);
 
+            const normalizedQuery = query.trim().toLowerCase();
 
-            const normalizedQuery = query.toLowerCase();
-
+            if (normalizedQuery === '' || normalizedQuery === '*') {
+                return;
+            }
 
             if (autocompleteCache[normalizedQuery]) {
                 console.log("Using cached result for:", normalizedQuery);
@@ -259,7 +253,6 @@ $(document).ready(function() {
                 doneCallback({ suggestions: autocompleteCache[normalizedQuery] });
                 return;
             }
-
 
             $.ajax({
                 url: "api/autocomplete",
@@ -286,8 +279,6 @@ $(document).ready(function() {
             return suggestion.value.replace(pattern, "<strong>$1</strong>");
         }
     });
-
-
 
 
     $('#title').keydown(function (event) {

@@ -50,7 +50,6 @@
         }
     </style>
 
-
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
@@ -58,28 +57,20 @@
     <title>Movie List</title>
 </head>
 
-
-
-
 <body style="background-color:lightsteelblue;">
 <div style="display:flex; justify-content:space-between; align-items:center; padding:8px;">
     <span id="user-info">Loading user…</span>
 
-
     <button id="checkout-button">Checkout</button>
     <button id="logout-button">Logout</button>
 
-
 </div>
-
 
 <div id="genre-links" class="mb-3"></div>
 <div id="title-links" class="mb-3 d-flex flex-wrap justify-content-center"></div>
 
-
 <div style="width:90%; margin: 0 auto; font-family: verdana;">
     <h1 style="font-size: 50px; padding-top:20px; padding-bottom:20px;">Movies</h1>
-
 
     <form id="search-form" class="mb-4">
         <input type="text" id="title" placeholder="Title">
@@ -89,11 +80,7 @@
         <button type="submit">Search</button>
     </form>
 
-
     <small id="search-type-label" class="text-muted"></small>
-
-
-
 
     <div class="mb-4 d-flex justify-content-center flex-wrap align-items-center">
         <label for="sort-by" class="mr-2">Sort by:</label>
@@ -102,13 +89,11 @@
             <option value="rating">Rating</option>
         </select>
 
-
         <label for="sort-order" class="ml-4 mr-2">Order:</label>
         <select id="sort-order" class="form-control mx-2" style="width:auto;">
             <option value="asc">Ascending</option>
             <option value="desc">Descending</option>
         </select>
-
 
         <label for="page-size" class="ml-4 mr-2">Movies per page:</label>
         <select id="page-size" class="form-control mx-2" style="width:auto;">
@@ -118,7 +103,6 @@
             <option value="100">100</option>
         </select>
     </div>
-
 
     <div style="display: flex; justify-content: center; overflow-x: auto;">
         <table id="star_table" class="table table-striped" style="text-align: center; width: auto; border: 1px solid white;">
@@ -136,20 +120,12 @@
         </table>
     </div>
 
-
-    <!--  Pagination Controls -->
     <div class="d-flex justify-content-center mt-4">
         <button id="prev-button" class="btn btn-secondary mx-2">Previous</button>
         <button id="next-button" class="btn btn-secondary mx-2">Next</button>
     </div>
 
-
 </div>
-
-
-
-
-
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
