@@ -21,7 +21,7 @@ public class TitlesServlet extends HttpServlet {
     public void init(ServletConfig config) {
         try {
             InitialContext ctx = new InitialContext();
-            ds = (DataSource) ctx.lookup("java:comp/env/jdbc/moviedb");
+            ds = (DataSource) ctx.lookup("java:comp/env/jdbc/slavedb");
         } catch (NamingException e) {
             throw new RuntimeException(e);
         }
