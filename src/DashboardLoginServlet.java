@@ -21,7 +21,7 @@ public class DashboardLoginServlet extends HttpServlet {
     public void init(ServletConfig config) throws ServletException {
         super.init(config);
         try {
-            dataSource = (DataSource) new InitialContext().lookup("java:comp/env/jdbc/moviedb");
+            dataSource = (DataSource) new InitialContext().lookup("java:comp/env/jdbc/masterdb");
         } catch (NamingException e) {
             throw new ServletException("Unable to retrieve DataSource", e);
         }

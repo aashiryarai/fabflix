@@ -24,7 +24,7 @@ public class LoginServlet extends HttpServlet {
         super.init(config);
         try {
             dataSource = (DataSource) new InitialContext()
-                    .lookup("java:comp/env/jdbc/moviedb");
+                    .lookup("java:comp/env/jdbc/masterdb");
         } catch (NamingException e) {
             throw new ServletException("Unable to retrieve DataSource", e);
         }
