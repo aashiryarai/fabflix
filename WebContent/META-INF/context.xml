@@ -2,16 +2,28 @@
 
 <Context>
 
-    <!-- Defines a Data Source Connecting to localhost moviedbexample-->
-    <Resource name="jdbc/moviedb"
+    <Resource name="jdbc/moviedb-master"
               auth="Container"
-              driverClassName="com.mysql.cj.jdbc.Driver"
               factory="org.apache.tomcat.jdbc.pool.DataSourceFactory"
+              driverClassName="com.mysql.cj.jdbc.Driver"
               maxTotal="100"
               maxIdle="30"
               maxWaitMillis="10000"
               type="javax.sql.DataSource"
               username="mytestuser"
               password="My6$Password"
-              url="jdbc:mysql://localhost:3306/moviedb?autoReconnect=true&amp;allowPublicKeyRetrieval=true&amp;useSSL=false&amp;cachePrepStmts=true"/>
+              url="jdbc:mysql://mysql-primary:3306/moviedb?autoReconnect=true&amp;allowPublicKeyRetrieval=true&amp;useSSL=false&amp;cachePrepStmts=true"/>
+
+    <Resource name="jdbc/moviedb-slave"
+              auth="Container"
+              factory="org.apache.tomcat.jdbc.pool.DataSourceFactory"
+              driverClassName="com.mysql.cj.jdbc.Driver"
+              maxTotal="100"
+              maxIdle="30"
+              maxWaitMillis="10000"
+              type="javax.sql.DataSource"
+              username="mytestuser"
+              password="My6$Password"
+              url="jdbc:mysql://mysql-secondary:3306/moviedb?autoReconnect=true&amp;allowPublicKeyRetrieval=true&amp;useSSL=false&amp;cachePrepStmts=true"/>
+
 </Context>
