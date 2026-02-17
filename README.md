@@ -1,7 +1,7 @@
 # Fabflix (CS 122B – Spring 2025)
 
 Fabflix is a full-stack movie browsing web application built throughout CS 122B.
-The project progressively evolves from a basic MySQL-backed web app into a scalable, distributed system with replication, connection pooling, full-text search, and load balancing.
+The project progressively evolves from a basic MySQL-backed web app into a scalable, distributed system with replication, connection pooling, full-text search, load balancing, and Kubernetes-based container orchestration.
 
 ---
 
@@ -44,7 +44,7 @@ The application was developed incrementally across five major milestones.
 - Apache Load Balancer
 - JDBC Connection Pooling
 - Docker (for containerization)
-
+- Kubernetes (K8s) Clusters
 ---
 
 ## Project Breakdown
@@ -83,7 +83,8 @@ The application was developed incrementally across five major milestones.
 - JDBC connection pooling
 - Load balancing
 - Horizontal scaling across backend instances
-
+- Deployment on Kubernetes (K8s) cluster
+  
 ---
 
 ## Key Features
@@ -122,6 +123,8 @@ css/
 src/
 servlets/
 utils/
+
+Dockerfile
 
 ## Languages Used
 - Java (~57%)
